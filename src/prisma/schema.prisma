@@ -1,0 +1,31 @@
+datasource db {
+    provider = "postgresql"
+    url = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id String @id @default(uuid())
+    email String @unique
+    password String
+    name String
+    avatar String?
+    age Int?
+    gender String?
+    city String?
+    interests String[]
+    currentPoints Int? @default(0)
+    pointsUsed Int? @default(0)
+    totalPointsEarned Int? @default(0)
+    currentStreak Int? @default(0)
+    longestStreak Int? @default(0)
+    level String? @default("beginner")
+    challengesCompleted Int? @default(0)
+    challengesSubmitted Int? @default(0)
+    challengesInReview Int? @default(0)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

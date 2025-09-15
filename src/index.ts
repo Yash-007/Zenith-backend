@@ -1,6 +1,7 @@
 import { Express, Request, Response, NextFunction } from 'express';
 import express from 'express';
 import dotenv from 'dotenv';
+import userRouter from './routes/user';
 
 dotenv.config();
 
@@ -20,6 +21,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
+
+
+app.use("/api/v1/user", userRouter);
 
 // Start server
 app.listen(port, () => {
