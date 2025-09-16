@@ -29,3 +29,16 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
+
+model Challenge {
+    id String @id @default(uuid())
+    title String
+    description String
+    category Int
+    time Int
+    points Int
+    level String
+    submissionType String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
