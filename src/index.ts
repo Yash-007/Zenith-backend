@@ -2,7 +2,7 @@ import { Express, Request, Response, NextFunction } from 'express';
 import express from 'express';
 import dotenv from 'dotenv';
 import userRouter from './routes/user';
-
+import challengeRouter from './routes/challenge';
 dotenv.config();
 
 const app: Express = express();
@@ -24,6 +24,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/challenge", challengeRouter)
 
 
 // Start server
