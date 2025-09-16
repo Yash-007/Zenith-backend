@@ -3,42 +3,47 @@ import { CreateUserRequest } from "../types/user.types";
 const prisma = new PrismaClient();
 
 export const createUser = async (userRequest: CreateUserRequest): Promise<User> => {
-    const userData = {
-        ...userRequest,
-        avatar: userRequest.avatar || null,
-        age: userRequest.age || null,
-        gender: userRequest.gender || null,
-        city: userRequest.city || null,
+    try {
+        const userData = {
+            ...userRequest,
+            avatar: userRequest.avatar || null,
+            age: userRequest.age || null,
+            gender: userRequest.gender || null,
+            city: userRequest.city || null,
+        }
+    
+        const newUser = await prisma.user.create({
+            data: userData
+        });
+        return newUser as User;   
+    } catch (error) {
+        console.error('Error creating user:', error);
+        throw error;
     }
-
-    const newUser = await prisma.user.create({
-        data: userData
-    });
-    return newUser;
 }
 
-export const getUserByEmail = async(email: string): Promise<User | null> =>{
+export const getUserByEmail = async(email: string): Promise<User> =>{
     try {
         const user = await prisma.user.findUnique({
            where: {
                email: email
            }
         });
-        return user;
+        return user as User;
     } catch (error) {
         console.error('Error getting user by email:', error);
         throw error;
     }
 }
 
-export const getUserById = async(userId: string): Promise<User | null> => {
+export const getUserById = async(userId: string): Promise<User> => {
     try {
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
             }
         })
-        return user
+        return user as User;
     } catch (error) {
         console.error('Error getting user by id:', error);
         throw error;
