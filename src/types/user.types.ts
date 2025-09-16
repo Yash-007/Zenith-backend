@@ -29,7 +29,7 @@ export type GetUserResponse = {
 
 // Zod schema for login user
 export const loginUserSchema = z.object({
-    email: z.string().email('Invalid email format').nonempty('Email is required'),
+    email: z.string().email('Invalid email format'),
     password: z.string().nonempty('Password is required')
 })
 
