@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { createUser, getUserByEmail } from "../repo/user";
-import { createUserSchema, loginUserSchema, CreateUserRequest, CreateUserResponse, LoginUserRequest, LoginOrRegisterUserResponse } from "../types/user.types";
+import { createUser, getUserByEmail, getUserById } from "../repo/user";
+import { createUserSchema, loginUserSchema, CreateUserRequest, GetUserResponse, LoginUserRequest, LoginOrRegisterUserResponse, UserResponse } from "../types/user.types";
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 import { ErrorResponse } from "../types/common.types";
@@ -8,8 +8,8 @@ import { ErrorResponse } from "../types/common.types";
 const saltRounds = 10;
 
 export const CreateUserController = async (
-    req: Request<{}, CreateUserResponse, CreateUserRequest>, 
-    res: Response<CreateUserResponse>
+    req: Request<{}, LoginOrRegisterUserResponse, CreateUserRequest>, 
+    res: Response<LoginOrRegisterUserResponse>
 ) => {
     try {
         // Validate request body against the schemas
@@ -30,11 +30,11 @@ export const CreateUserController = async (
         };
 
         const newUser = await createUser(userData);
+        const token = jwt.sign({userId: newUser.id}, process.env.JWT_SECRET as string, {expiresIn: '1h'})
         
-        const { password, ...userWithoutPassword } = newUser;
-        const createUserResponse: CreateUserResponse = {
-            user: userWithoutPassword,
-            message: 'User created successfully',
+        const createUserResponse: LoginOrRegisterUserResponse = {
+            token,
+            message: 'User registered successfully',
             success: true
         }
         res.status(201).json(createUserResponse);
@@ -95,6 +95,31 @@ export const LoginUserController = async (
         console.error('Error logging in user:', error);
         res.status(500).json({
             message: 'Failed to login user',
+            success: false
+        } as ErrorResponse);
+    }
+}
+
+export const GetUserController = async (req: Request & {userId?: string}, res: Response<UserResponse | ErrorResponse>) => {
+    try {
+        const user = await getUserById(req.userId as string)
+        if (!user) {
+            return res.status(400).json({
+                message: 'User not found',
+                success: false
+            } as ErrorResponse);
+        }
+        const {password, ...userWithoutPassword} = user;
+        const getUserReponse: GetUserResponse = {
+            user: userWithoutPassword,
+            message: 'User fetched successfully',
+            success: true
+        }
+        return res.status(200).json(getUserReponse);
+    } catch (error) {
+        console.error('Error getting user:', error);
+        return res.status(500).json({
+            message: 'Failed to get user',
             success: false
         } as ErrorResponse);
     }

@@ -21,7 +21,7 @@ export type CreateUserRequest = z.infer<typeof createUserSchema>;
 
 export type UserResponse = Omit<User, 'password'>;
 
-export type CreateUserResponse = {
+export type GetUserResponse = {
     user: UserResponse,
     message: string,
     success: boolean

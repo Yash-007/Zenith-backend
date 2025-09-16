@@ -7,7 +7,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction): (Response<ErrorResponse> | void) => {
-    const token = req.headers['X-Auth-Token'] as string;
+    const token = req.headers['x-auth-token'] as string;
     if (!token) {
         return res.status(401).json({
             message: 'Unauthorized',

@@ -30,3 +30,17 @@ export const getUserByEmail = async(email: string): Promise<User | null> =>{
         throw error;
     }
 }
+
+export const getUserById = async(userId: string): Promise<User | null> => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+        return user
+    } catch (error) {
+        console.error('Error getting user by id:', error);
+        throw error;
+    }
+}
