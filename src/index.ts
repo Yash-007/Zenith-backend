@@ -25,6 +25,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 app.use("/api/v1/user", userRouter);
 
+
 // Start server
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
