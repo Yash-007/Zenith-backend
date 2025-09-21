@@ -30,3 +30,13 @@ export const getChallengeById = async(id:string): Promise<Challenge> =>{
        throw error;
     }
 }
+
+export const fetchAllChallenges = async() => {
+    try {
+        const challenges = await prisma.challenge.findMany();
+        return challenges;
+    } catch (error) {
+       console.error("Error getting all challenges", error)
+       throw error;   
+    }
+}
