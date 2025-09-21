@@ -16,3 +16,17 @@ export const createChallenge = async(createChallengeRequest: CreateChallengeRequ
         throw error;
     }
 }
+
+export const getChallengeById = async(id:string): Promise<Challenge> =>{
+    try {
+        const challenge = await prisma.challenge.findUnique({
+            where:{
+                id:id
+            }
+        })
+        return challenge as Challenge;
+    } catch (error) {
+       console.error('Error getting challenge by id:', error);
+       throw error;
+    }
+}

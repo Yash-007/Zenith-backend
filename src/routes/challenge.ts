@@ -1,11 +1,12 @@
 import {Router} from 'express';
 import { authenticateToken } from '../middlewares/auth';
-import { createChallengeController } from '../controllers/challenge';
+import { createChallengeController, getChallengById } from '../controllers/challenge';
 
-const challengRouter = Router();
+const challengeRouter = Router();
 
-challengRouter.use(authenticateToken);
+challengeRouter.use(authenticateToken);
 
-challengRouter.post("", createChallengeController)
+challengeRouter.post("", createChallengeController)
+challengeRouter.get("", getChallengById)
 
-export default challengRouter;
+export default challengeRouter;
