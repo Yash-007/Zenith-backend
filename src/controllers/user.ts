@@ -30,7 +30,7 @@ export const CreateUserController = async (
         };
 
         const newUser = await createUser(userData);
-        const token = jwt.sign({userId: newUser.id}, process.env.JWT_SECRET as string, {expiresIn: '1h'})
+        const token = jwt.sign({userId: newUser.id}, process.env.JWT_SECRET as string, {expiresIn: '7d'})
         
         const createUserResponse: LoginOrRegisterUserResponse = {
             token,
@@ -78,7 +78,7 @@ export const LoginUserController = async (
         } as ErrorResponse);
       }
 
-      const token = jwt.sign({userId: user.id}, process.env.JWT_SECRET as string, {expiresIn: '1h'})
+      const token = jwt.sign({userId: user.id}, process.env.JWT_SECRET as string, {expiresIn: '7d'})
       
       const LoginUserResponse: LoginOrRegisterUserResponse = {
         token,
