@@ -55,7 +55,7 @@ export const getChallengById = async (req: Request<{}, {}, {}, {id: string}>, re
     }
 }
 
-export const getAllChallenges = async (req: Request, res: Response) => {
+export const getAllChallenges = async (req: Request, res: Response<ErrorResponse | SuccessResponse>) => {
  try {
      const challenges = await fetchAllChallenges();
      return res.status(200).json({
