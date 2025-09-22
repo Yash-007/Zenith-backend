@@ -42,3 +42,22 @@ model Challenge {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
+
+enum SubmissionStatus {
+    PENDING
+    COMPLETED
+    REJECTED
+}
+
+model Submission {
+    id String @unique @default(uuid())
+    userId String 
+    challengeId String
+    isChallengeExists Boolean @default(true)
+    proofs Json
+    status SubmissionStatus @default(PENDING)
+    submittedAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([userId, challengeId])
+}
