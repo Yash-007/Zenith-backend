@@ -3,10 +3,13 @@ import express from 'express';
 import dotenv from 'dotenv';
 import userRouter from './routes/user';
 import challengeRouter from './routes/challenge';
+import submissionRouter from './routes/submission';
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+
+app.use("/uploads", express.static('uploads'))
 
 // Middleware for JSON parsing
 app.use(express.json());
@@ -24,7 +27,8 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 
 app.use("/api/v1/user", userRouter);
-app.use("/api/v1/challenge", challengeRouter)
+app.use("/api/v1/challenge", challengeRouter);
+app.use("/api/v1/submission", submissionRouter);
 
 
 // Start server
