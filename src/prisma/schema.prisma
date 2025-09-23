@@ -16,7 +16,7 @@ model User {
     age Int?
     gender String?
     city String?
-    interests String[]
+    interests Int[]
     currentPoints Int? @default(0)
     pointsUsed Int? @default(0)
     totalPointsEarned Int? @default(0)
@@ -37,7 +37,7 @@ model Challenge {
     category Int
     time Int
     points Int
-    level String
+    level Int  //0, 1, 2
     submissionType String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

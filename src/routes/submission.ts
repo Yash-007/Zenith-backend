@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {getLastTenUserSubmissions, getUserSubmissionByChallengeId, submitChallengeController } from "../controllers/submission";
+import {getAllUserSubmissions, getLastTenUserSubmissions, getSubmissionBySubmissionId, getUserSubmissionByChallengeId, submitChallengeController } from "../controllers/submission";
 import { authenticateToken } from "../middlewares/auth";
 import { upload } from "../middlewares/multer";
 
@@ -12,8 +12,10 @@ submissionRouter.post('/submit', upload.fields([
     { name: 'videos', maxCount: 2 }
 ]), submitChallengeController);
 
-submissionRouter.get("/", getUserSubmissionByChallengeId)
+submissionRouter.get("/challenge", getUserSubmissionByChallengeId)
 
 submissionRouter.get("/recent", getLastTenUserSubmissions)
+submissionRouter.get("/all", getAllUserSubmissions);
+submissionRouter.get("/", getSubmissionBySubmissionId);
 
 export default submissionRouter;

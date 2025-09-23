@@ -3,7 +3,7 @@ import { createSubmissionRequest, submitSubmissionRequest } from "../types/submi
 
 const prisma = new PrismaClient();
 
-export const createSubmission = async(submission: createSubmissionRequest): Promise<Submission> => {
+export const createSubmission = async(submission: createSubmissionRequest): Promise<Submission | null> => {
     try {
         const createdSubmission = await prisma.submission.create({
             data: {
@@ -16,14 +16,14 @@ export const createSubmission = async(submission: createSubmissionRequest): Prom
             }
         })
 
-        return createdSubmission as Submission;
+        return createdSubmission;
     } catch (error) {
         console.error("error while creating submission", error)
         throw error;
     }
 }
 
-export const fetchSubmissionByChallengeIdAndUserId = async(challengeId: string, userId: string): Promise<Submission> => {
+export const fetchSubmissionByChallengeIdAndUserId = async(challengeId: string, userId: string): Promise<Submission | null> => {
     try {
         const submission = await prisma.submission.findUnique({
             where: {
@@ -33,7 +33,7 @@ export const fetchSubmissionByChallengeIdAndUserId = async(challengeId: string, 
                 }
             }
         });
-        return submission as Submission;
+        return submission;
     } catch (error) {
         console.error("error fetching submission by id from the db", error)
         throw error;
@@ -41,7 +41,7 @@ export const fetchSubmissionByChallengeIdAndUserId = async(challengeId: string, 
 }
 
 
-export const fetchLastTenSubmissionsByUserId = async(userId: string) => {
+export const fetchLastTenSubmissionsByUserId = async(userId: string): Promise<Submission[]> => {
     try {
         const submissions = await prisma.submission.findMany({
             where: {
@@ -53,6 +53,49 @@ export const fetchLastTenSubmissionsByUserId = async(userId: string) => {
         return submissions;
     } catch (error) {
         console.error("error fetching user submissions from db", error);
+        throw error;
+    }
+}
+
+export const fetchAllSubmissions = async(userId: string):Promise<Submission[]> => {
+    try {
+        const submissions = await prisma.submission.findMany();
+        return submissions;
+    } catch (error) {
+        console.error("error fetching submissions from db", error);
+        throw error;
+    }
+}
+
+export const fetchSubmissionBySubmissionId = async(submissionId: string):Promise<Submission | null> => {
+    try {
+        const submission = await prisma.submission.findUnique({
+            where: {
+                id: submissionId,
+            }
+        });
+        return submission;
+    } catch (error) {
+        console.error("error fetching submission from db", error);
+        throw error;
+    }
+}
+
+export const fetchUserRecentPendingSubmissionChallengeId = async(userId: string): Promise<{challengeId: string} | null> => {
+    try {
+        const challengeId = await prisma.submission.findFirst({
+           select: {challengeId: true},
+           where: {
+            userId: userId,
+            status: "PENDING",
+            isChallengeExists: true,
+           },
+           orderBy: {submittedAt: "desc"}
+        });
+
+        return challengeId;
+    } catch (error) {
+        console.error("error fetching pending submission from db", error);
         throw error;
     }
 }

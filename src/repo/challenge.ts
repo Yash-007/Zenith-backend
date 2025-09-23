@@ -40,3 +40,24 @@ export const fetchAllChallenges = async() => {
        throw error;   
     }
 }
+
+export const getChallengesByCategoryExcluding = async(categoryId: number, challengeIds: string[]): Promise<Challenge[]> => {
+ try {
+    const challenges = await prisma.challenge.findMany({
+        where: {
+            category: {
+                equals: categoryId,            
+            },
+            id: {
+                    notIn: challengeIds
+                }
+        },
+        orderBy: {level: "asc"},
+        take: 2,
+    });
+    return challenges;
+ } catch (error) {
+    console.error("Error getting challenges", error)
+    throw error;   
+ }
+}

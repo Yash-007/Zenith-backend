@@ -1,4 +1,4 @@
-import { Challenge } from "@prisma/client";
+import { Challenge, Submission } from "@prisma/client";
 
 export type CreateChallengeRequest = {
     title: string;
@@ -6,7 +6,7 @@ export type CreateChallengeRequest = {
     category:number;
     time:number;
     points:number;
-    level:string;
+    level:number;
     submissionType:string;
 }
 
@@ -14,4 +14,9 @@ export type CreateChallengeResponse = {
     message: string;
     success: boolean;
     challenge: Challenge;
+}
+
+export type UserChallengesResponse = {
+    challengesByInterest: Map<number, Challenge[]>,
+    recentPendingSubmissionChallenge?: Challenge | null
 }

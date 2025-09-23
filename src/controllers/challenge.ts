@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
-import { CreateChallengeRequest, CreateChallengeResponse } from "../types/challenge.types";
-import { createChallenge, getChallengeById, fetchAllChallenges} from "../repo/challenge";
+import { CreateChallengeRequest, UserChallengesResponse } from "../types/challenge.types";
+import { createChallenge, getChallengeById, fetchAllChallenges, getChallengesByCategoryExcluding} from "../repo/challenge";
+import { getUserById } from "../repo/user";
+import { fetchAllSubmissions, fetchUserRecentPendingSubmissionChallengeId } from "../repo/submission";
+import { Challenge } from "@prisma/client";
 
 export const createChallengeController = async(req: Request<{}, {}, CreateChallengeRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
@@ -70,4 +73,58 @@ export const getAllChallenges = async (req: Request, res: Response<ErrorResponse
       success: false,
     } as ErrorResponse)
  }
+}
+
+export const getUserChallenges = async(req: Request & {userId?: string}, res: Response) => {
+  try {
+    const userId = req.userId as string;
+    const user = await getUserById(userId);
+
+    const userInterests = user.interests;
+    
+    if(userInterests.length === 0) {
+        return res.status(200).json({
+            success: false,
+            message: "no user interests found"
+        } as ErrorResponse);
+    }
+
+    const userSubmissions = await fetchAllSubmissions(userId);
+    const userSubmittedChallengeIds = userSubmissions?.map((sub)=> sub.challengeId) || [];
+
+    const getChallengesByInterestsPromises: Promise<Challenge[]>[] = [];
+    
+    userInterests.forEach((interest)=>{
+        getChallengesByInterestsPromises.push(getChallengesByCategoryExcluding(Number(interest), userSubmittedChallengeIds))
+    });
+
+    const allChallenges = await Promise.all(getChallengesByInterestsPromises);
+    const challengesMappedWithInterests: Map<number, Challenge[]> = new Map();
+
+    allChallenges.forEach((challenges, idx)=> challengesMappedWithInterests.set(userInterests[idx] as number, challenges));
+
+    const finalResp: UserChallengesResponse = {
+        challengesByInterest: challengesMappedWithInterests,
+    }
+
+    const userRecentPendingSubmissionChallengeId = await fetchUserRecentPendingSubmissionChallengeId(userId);
+    if (userRecentPendingSubmissionChallengeId) {
+        const userRecentPendingSubmissionChallenge = await getChallengeById(userRecentPendingSubmissionChallengeId.challengeId)
+        finalResp.recentPendingSubmissionChallenge = userRecentPendingSubmissionChallenge;
+    }
+
+
+    return res.status(200).json({
+       success: true,
+       message: "User Challenges fetched successfully",
+       data: finalResp,
+    } as SuccessResponse);
+
+  } catch (error) {
+    console.error("Error getting challenges")
+    return res.status(500).json({
+      message: "Failed to get challenges",
+      success: false,
+    } as ErrorResponse);
+  }
 }
