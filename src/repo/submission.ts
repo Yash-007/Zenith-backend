@@ -22,3 +22,36 @@ export const createSubmission = async(submission: createSubmissionRequest): Prom
         throw error;
     }
 }
+
+export const fetchSubmissionByChallengeIdAndUserId = async(challengeId: string, userId: string): Promise<Submission> => {
+    try {
+        const submission = await prisma.submission.findUnique({
+            where: {
+                userId_challengeId : {
+                    userId: userId,
+                    challengeId: challengeId,
+                }
+            }
+        });
+        return submission as Submission;
+    } catch (error) {
+        console.error("error fetching submission by id from the db", error)
+        throw error;
+    }
+}
+
+
+export const fetchLastTenSubmissionsByUserId = async(userId: string) => {
+    try {
+        const submissions = await prisma.submission.findMany({
+            where: {
+                userId: userId
+            },
+            take: 10,
+        });
+        return submissions;
+    } catch (error) {
+        console.error("error fetching user submissions from db", error);
+        throw error;
+    }
+}
