@@ -13,7 +13,7 @@ export const createUserSchema = z.object({
     age: z.number().optional(),
     gender: z.string().optional(),
     city: z.string().optional(),
-    interests: z.array(z.string())
+    interests: z.array(z.int())
         .min(4, 'At least 4 interests are required')
 });
 
