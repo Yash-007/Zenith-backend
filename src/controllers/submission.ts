@@ -1,7 +1,7 @@
 import { submitSubmissionRequest, submitSubmissionSchema } from "../types/submission.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import { RequestHandler } from "express-serve-static-core";
-import { createSubmission, fetchSubmissionByChallengeIdAndUserId } from "../repo/submission";
+import { createSubmission, fetchLastTenSubmissionsByUserId, fetchSubmissionByChallengeIdAndUserId } from "../repo/submission";
 import { Request, Response } from "express";
 
 export const submitChallengeController: RequestHandler = async (req, res) => {
@@ -62,10 +62,10 @@ export const getUserSubmissionByChallengeId = async (
     const submission = await fetchSubmissionByChallengeIdAndUserId(challengeId, userId);
 
     if (!submission) {
-        return res.status(400).json({
+        return res.status(404).json({
             success: false,
-            message: "Challenge Id is required"
-          } as ErrorResponse)
+            message: "submission not found"
+          } as ErrorResponse);
     }
     
     return res.status(200).json({
@@ -80,4 +80,32 @@ export const getUserSubmissionByChallengeId = async (
         message: "Internal Server Error"
       } as ErrorResponse)
  }
+}
+
+export const getLastTenUserSubmissions = async (req: Request & {userId?: string}, res: Response) => {
+ try {
+    const userId = req.userId as string;
+    const submissions = await fetchLastTenSubmissionsByUserId(userId); 
+
+    return res.status(200).json({
+        success: true,
+        message: "Submissions fetched successfully",
+        data : submissions,
+     } as SuccessResponse);
+
+ } catch (error) {
+    console.error("error fetching submissions", error);
+    return res.status(500).json({
+        success: false,
+        message: "Internal Server Error"
+      } as ErrorResponse)
+ }
+}
+
+export const getAllUserSubmissions = async(req: Request, res: Response) => {
+    try {
+        // const submissions = 
+    } catch (error) {
+        
+    }
 }

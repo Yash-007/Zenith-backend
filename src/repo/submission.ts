@@ -48,6 +48,7 @@ export const fetchLastTenSubmissionsByUserId = async(userId: string) => {
                 userId: userId
             },
             take: 10,
+            orderBy: {submittedAt: "desc"},
         });
         return submissions;
     } catch (error) {

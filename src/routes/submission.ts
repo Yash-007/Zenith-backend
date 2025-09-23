@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {getUserSubmissionByChallengeId, submitChallengeController } from "../controllers/submission";
+import {getLastTenUserSubmissions, getUserSubmissionByChallengeId, submitChallengeController } from "../controllers/submission";
 import { authenticateToken } from "../middlewares/auth";
 import { upload } from "../middlewares/multer";
 
@@ -13,5 +13,7 @@ submissionRouter.post('/submit', upload.fields([
 ]), submitChallengeController);
 
 submissionRouter.get("/", getUserSubmissionByChallengeId)
+
+submissionRouter.get("/recent", getLastTenUserSubmissions)
 
 export default submissionRouter;
