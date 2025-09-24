@@ -30,6 +30,14 @@ model User {
     updatedAt DateTime @updatedAt
 }
 
+model Category{
+    id Int @id @default(autoincrement())
+    name String
+    description String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
 model Challenge {
     id String @id @default(uuid())
     title String
@@ -60,4 +68,32 @@ model Submission {
     updatedAt DateTime @updatedAt
 
     @@unique([userId, challengeId])
+}
+
+enum RewardStatus {
+    PENDING
+    COMPLETED
+}
+
+model RewardHistory{
+    id String @id @default(uuid())
+    userId String
+    pointsRewarded Int
+    rewardType String
+    status RewardStatus @default(PENDING)
+    rewardedAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+  @@map("reward_history")
+}
+
+model Chat{
+    id String @id @default(uuid())
+    userId String
+    query String
+    response String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("chats")
 }
