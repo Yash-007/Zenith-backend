@@ -99,9 +99,8 @@ export const getUserChallenges = async(req: Request & {userId?: string}, res: Re
     });
 
     const allChallenges = await Promise.all(getChallengesByInterestsPromises);
-    const challengesMappedWithInterests: Map<number, Challenge[]> = new Map();
-
-    allChallenges.forEach((challenges, idx)=> challengesMappedWithInterests.set(userInterests[idx] as number, challenges));
+    const challengesMappedWithInterests: {[key: number]: Challenge[]} = {};
+    allChallenges.forEach((challenges, idx)=> challengesMappedWithInterests[userInterests[idx] as number] = challenges);
 
     const finalResp: UserChallengesResponse = {
         challengesByInterest: challengesMappedWithInterests,

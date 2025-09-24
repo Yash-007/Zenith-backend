@@ -17,6 +17,8 @@ export type CreateChallengeResponse = {
 }
 
 export type UserChallengesResponse = {
-    challengesByInterest: Map<number, Challenge[]>,
+    challengesByInterest: {
+        [key: number]: Challenge[]
+    }
     recentPendingSubmissionChallenge?: Challenge | null
 }
