@@ -80,7 +80,7 @@ model RewardHistory{
     userId String
     pointsRewarded Int
     rewardType String
-    status RewardStatus @default(PENDING)
+    status RewardStatus? @default(PENDING)
     rewardedAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
