@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import userRouter from './routes/user';
 import challengeRouter from './routes/challenge';
 import submissionRouter from './routes/submission';
+import rewardRouter from './routes/reward';
 dotenv.config();
 
 const app: Express = express();
@@ -29,6 +30,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/challenge", challengeRouter);
 app.use("/api/v1/submission", submissionRouter);
+app.use("/api/v1/reward", rewardRouter);
 
 
 // Start server
