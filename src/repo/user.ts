@@ -1,5 +1,6 @@
 import { PrismaClient, User } from "@prisma/client";
 import { CreateUserRequest } from "../types/user.types";
+import { string } from "zod";
 const prisma = new PrismaClient();
 
 export const createUser = async (userRequest: CreateUserRequest): Promise<User> => {
@@ -46,6 +47,26 @@ export const getUserById = async(userId: string): Promise<User> => {
         return user as User;
     } catch (error) {
         console.error('Error getting user by id:', error);
+        throw error;
+    }
+}
+
+export const updateUserWithSpecificFields = async(userId: string, userFields: {[key:string]: any}): Promise<User | null> => {
+    try {
+        const data: {[key:string]: any} = {};
+        Object.keys(userFields).forEach((key)=> {
+            data[key] = userFields[key];
+        })
+        
+           const updatedUser = await prisma.user.update({
+            where: {
+                id : userId
+            },
+            data: data
+           });
+           return updatedUser as User;
+    } catch (error) {
+        console.error('Error updating user:', error);
         throw error;
     }
 }
