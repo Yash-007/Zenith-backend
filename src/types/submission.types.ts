@@ -1,7 +1,6 @@
 import {z} from "zod";
 
 export const submitSubmissionSchema = z.object({
-    userId: z.string(),
     challengeId: z.string(),
     status: z.enum(["PENDING", "COMPLETED", "REJECTED"]),
     isChallengeExists: z.preprocess((val) => val === "true", z.boolean()),
@@ -11,6 +10,7 @@ export const submitSubmissionSchema = z.object({
 export type submitSubmissionRequest = z.infer<typeof submitSubmissionSchema>
 
 export interface createSubmissionRequest extends submitSubmissionRequest {
+    userId: string,
     proofs : {
         text?: string,
         images?: string[],
