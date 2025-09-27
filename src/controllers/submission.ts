@@ -1,11 +1,13 @@
 import { submitSubmissionRequest, submitSubmissionSchema } from "../types/submission.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
-import { RequestHandler } from "express-serve-static-core";
 import { createSubmission, fetchAllSubmissions, fetchLastTenSubmissionsByUserId, fetchSubmissionByChallengeIdAndUserId, fetchSubmissionBySubmissionId } from "../repo/submission";
 import { Request, Response } from "express";
+import { getUserById, updateUserWithSpecificFields } from "../repo/user";
 
-export const submitChallengeController: RequestHandler = async (req, res) => {
+export const submitChallengeController= async (req: Request<{}, {}, submitSubmissionRequest> & {userId?: string}, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
+        const userId = req.userId as string;
+
         const result = submitSubmissionSchema.safeParse(req.body);
         if (!result.success) {
             return res.status(400).json({ 
@@ -22,6 +24,7 @@ export const submitChallengeController: RequestHandler = async (req, res) => {
 
         const submission = {
             ...validatedData,
+            userId,
             proofs: {
                 text: validatedData.text || '',
                 images,
@@ -30,11 +33,28 @@ export const submitChallengeController: RequestHandler = async (req, res) => {
         };
         delete submission.text
        const createdSubmission = await createSubmission(submission);
-
        if (!createdSubmission){
         return res.status(500).json({ 
             success: false,
             message: "Failed to submit challenge",
+        } as ErrorResponse);
+       }
+
+       const user = await getUserById(userId);
+
+       const userFields = {
+        currentStreak: user.currentStreak+1,
+        longestStreak: Math.max(user.longestStreak, user.currentStreak+1),
+        challengesSubmitted: user.challengesSubmitted+1,
+        challengesInReview: user.challengesInReview+1,
+       }
+
+       const updatedUser = await updateUserWithSpecificFields(userId, userFields);
+
+       if (!updatedUser) {
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update user"
         } as ErrorResponse);
        }
 
