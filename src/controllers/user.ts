@@ -69,6 +69,12 @@ export const LoginUserController = async (
         }
         const {email, password} = result.data;
         const user = await getUserByEmail(email);
+        if (!user) {
+            return res.status(400).json({
+                message: 'User not found',
+                success: false
+            } as ErrorResponse);
+        }
 
       const isValidPassword =  await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
