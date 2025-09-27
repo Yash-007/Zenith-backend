@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import { CreateUserRewardEntryRequest, createUserRewardEntrySchema } from "../types/reward.types";
 import { createUserReward, fetchUserRewardsHistory } from "../repo/rewardHistory";
+import { getUserById, updateUserWithSpecificFields } from "../repo/user";
 
 export const createUserRewardEntry = async(req: Request<{}, {}, CreateUserRewardEntryRequest> &  {userId?: string}, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
@@ -15,6 +16,27 @@ export const createUserRewardEntry = async(req: Request<{}, {}, CreateUserReward
 
         const validatedData = result.data;
         const userId = req.userId as string;
+        const user = await getUserById(userId);
+        if (!user) {
+            return res.status(400).json({
+                message: 'User not found',
+                success: false
+            } as ErrorResponse);
+        }
+
+        if (user.currentPoints < validatedData.pointsRewarded) {
+            return res.status(400).json({
+                message: 'User does not have enough points',
+                success: false
+            } as ErrorResponse);
+        }
+
+        const userFields = {
+            currentPoints: user.currentPoints - validatedData.pointsRewarded,
+            pointsUsed: user.pointsUsed + validatedData.pointsRewarded,
+        }
+        await updateUserWithSpecificFields(userId, userFields);
+
         const userRewardEntry = await createUserReward(userId ,validatedData);
         if (!userRewardEntry) {
             return res.status(400).json({
