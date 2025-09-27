@@ -5,6 +5,7 @@ import userRouter from './routes/user';
 import challengeRouter from './routes/challenge';
 import submissionRouter from './routes/submission';
 import rewardRouter from './routes/reward';
+import chatRouter from './routes/chat';
 dotenv.config();
 
 const app: Express = express();
@@ -31,6 +32,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/challenge", challengeRouter);
 app.use("/api/v1/submission", submissionRouter);
 app.use("/api/v1/reward", rewardRouter);
+app.use("/api/v1/chat", chatRouter);
 
 
 // Start server
