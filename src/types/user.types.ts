@@ -41,3 +41,30 @@ export type LoginOrRegisterUserResponse = {
     success: boolean
 }
 
+export const leaderboardQuerySchema = z.object({
+    page: z.string()
+           .transform(page => parseInt(page))
+           .pipe(z.number().positive())
+           .optional()
+           .default(1),
+    lowerAge: z.string()
+         .transform(age => parseInt(age))
+         .pipe(z.number().positive())
+         .optional()
+         .default(0),
+    upperAge: z.string()
+         .transform(age => parseInt(age))
+         .pipe(z.number().positive())
+         .optional()
+         .default(0),
+    city: z.string()
+         .optional(),
+    fetchUser: z.string()
+                .transform(val => val === "true"),
+    userRating: z.string()
+                .transform(val => parseInt(val))
+                .pipe(z.number().positive())
+                .optional()
+});
+
+export type LeaderboardQueryRequest = z.infer<typeof leaderboardQuerySchema>;
