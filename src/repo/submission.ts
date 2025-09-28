@@ -116,3 +116,18 @@ try {
     throw error;
 }
 }
+
+export const fetchUserLastSubmission = async(userId: string): Promise<Submission | null> => {
+    try {
+        const submission = await prisma.submission.findFirst({
+            where: {
+                userId: userId
+            },
+            orderBy: {submittedAt: "desc"}
+        });
+        return submission;
+    } catch (error) {
+        console.error("error fetching user last submission", error);
+        throw error;
+    }
+}

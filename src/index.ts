@@ -7,8 +7,8 @@ import submissionRouter from './routes/submission';
 import rewardRouter from './routes/reward';
 import chatRouter from './routes/chat';
 import redisClient from './clients/redis';
+import { updateUsersCurrentStreakJob } from './jobs/updateUsersStreak';
 dotenv.config();
-
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
@@ -37,6 +37,8 @@ app.use("/api/v1/submission", submissionRouter);
 app.use("/api/v1/reward", rewardRouter);
 app.use("/api/v1/chat", chatRouter);
 
+
+updateUsersCurrentStreakJob();
 
 // Start server
 app.listen(port, () => {

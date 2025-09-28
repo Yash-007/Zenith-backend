@@ -245,3 +245,12 @@ export const fetchUserRankLeaderboard = async(user: User, limit: number): Promis
     }
 }
 
+export const fetchAllUsers = async(): Promise<User[]> => {
+    try {
+        const users = await prisma.user.findMany();
+        return users as User[];
+    } catch (error) {
+        console.error('Error fetching all users:', error);
+        throw error;
+    }
+}
