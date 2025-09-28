@@ -17,3 +17,11 @@ export interface createSubmissionRequest extends submitSubmissionRequest {
         videos?: string[],
     }
 }
+
+export const updateSubmissionStatusSchema = z.object({
+    status: z.enum(["COMPLETED", "REJECTED"], {
+        error:"Status is required and must be one of COMPLETED, REJECTED"
+    }),
+});
+
+export type updateSubmissionStatusRequest = z.infer<typeof updateSubmissionStatusSchema>

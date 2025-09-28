@@ -1,8 +1,10 @@
-import { submitSubmissionRequest, submitSubmissionSchema } from "../types/submission.types";
+import { submitSubmissionRequest, submitSubmissionSchema, updateSubmissionStatusRequest, updateSubmissionStatusSchema } from "../types/submission.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
-import { createSubmission, fetchAllSubmissions, fetchLastTenSubmissionsByUserId, fetchSubmissionByChallengeIdAndUserId, fetchSubmissionBySubmissionId } from "../repo/submission";
+import { createSubmission, fetchAllSubmissions, fetchLastTenSubmissionsByUserId, fetchSubmissionByChallengeIdAndUserId, fetchSubmissionBySubmissionId, updateSubmissionStatus } from "../repo/submission";
 import { Request, Response } from "express";
 import { getUserById, updateUserWithSpecificFields } from "../repo/user";
+import { getChallengeById } from "../repo/challenge";
+import { User } from "@prisma/client";
 
 export const submitChallengeController= async (req: Request<{}, {}, submitSubmissionRequest> & {userId?: string}, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
@@ -147,7 +149,7 @@ export const getAllUserSubmissions = async(req: Request & {userId?:string}, res:
     }
 }
 
-export const getSubmissionBySubmissionId = async(req: Request<{},{},{},{submissionId: string}>, res: Response) => {
+export const getSubmissionBySubmissionId = async(req: Request<{},{},{},{submissionId: string}>, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
         const submissionId = req.query.submissionId;
         if (!submissionId) {
@@ -172,6 +174,104 @@ export const getSubmissionBySubmissionId = async(req: Request<{},{},{},{submissi
          } as SuccessResponse);    
     } catch (error) {
         console.error("error fetching submission", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+          } as ErrorResponse)
+    }
+}
+
+export const updateSubmissionStatusController = async(req: Request<{submissionId: string},{},updateSubmissionStatusRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
+    try {
+        const submissionId = req.params.submissionId;
+        if (!submissionId) {
+            return res.status(400).json({
+                success: false,
+                message: "Submission Id is required"
+            } as ErrorResponse);
+        }
+
+        const result = updateSubmissionStatusSchema.safeParse(req.body);
+        if (!result.success) {
+            return res.status(400).json({
+                success: false,
+                message: result.error.issues[0]?.message || 'Invalid request body'
+            } as ErrorResponse);
+        }
+
+        const validatedData = result.data;
+        const submission = await fetchSubmissionBySubmissionId(submissionId);
+        if (!submission) {
+            return res.status(404).json({
+                success: false,
+                message: "Submission not found"
+            } as ErrorResponse);
+        }
+        
+        if (submission.status !== "PENDING") {
+            return res.status(400).json({
+                success: false,
+                message: `Submission is already settled with ${submission.status} status`
+            } as ErrorResponse);
+        }
+
+        const updatedSubmission = await updateSubmissionStatus(submissionId, validatedData.status);
+        if (!updatedSubmission) {
+            return res.status(404).json({
+                success: false,
+                message: "failed to update submission status"
+            } as ErrorResponse);
+        }
+
+        const user = await getUserById(submission.userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            } as ErrorResponse);
+        }
+
+        let userFields: Partial<User> = {
+            challengesInReview: user.challengesInReview-1,
+        };
+
+        if (validatedData.status === "COMPLETED"){
+            let challengePoints = 0;
+            if (!submission.isChallengeExists){
+                challengePoints = 100;
+            } else {
+                const challenge = await getChallengeById(submission.challengeId);
+                if (!challenge) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "Challenge not found"
+                    } as ErrorResponse);
+                }
+                challengePoints = challenge.points;
+            }
+    
+            userFields["challengesCompleted"] = user.challengesCompleted+1;
+            userFields["totalPointsEarned"] = user.totalPointsEarned + challengePoints;
+            userFields["currentPoints"] = user.currentPoints + challengePoints;            
+        }
+
+
+        const updatedUser = await updateUserWithSpecificFields(user.id, userFields);
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "failed to update user"
+            } as ErrorResponse);
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Submission status updated successfully",
+            data: updatedSubmission
+        } as SuccessResponse);
+        
+    } catch (error) {
+        console.error("error updating submission status", error);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"

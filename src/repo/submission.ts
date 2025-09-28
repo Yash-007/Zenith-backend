@@ -1,4 +1,4 @@
-import {PrismaClient, Submission } from "@prisma/client";
+import {PrismaClient, Submission, SubmissionStatus } from "@prisma/client";
 import { createSubmissionRequest, submitSubmissionRequest } from "../types/submission.types";
 
 const prisma = new PrismaClient();
@@ -98,4 +98,21 @@ export const fetchUserRecentPendingSubmissionChallengeId = async(userId: string)
         console.error("error fetching pending submission from db", error);
         throw error;
     }
+}
+
+export const updateSubmissionStatus = async(submissionId: string, status: SubmissionStatus): Promise<Submission | null> => {
+try {
+    const submission = await prisma.submission.update({
+        where: {
+            id: submissionId
+        },
+        data: {
+            status: status
+        }
+    });
+    return submission;
+} catch (error) {
+    console.error("error updating submission status", error);
+    throw error;
+}
 }
