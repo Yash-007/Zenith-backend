@@ -60,11 +60,9 @@ export const leaderboardQuerySchema = z.object({
     city: z.string()
          .optional(),
     fetchUser: z.string()
-                .transform(val => val === "true"),
-    userRating: z.string()
-                .transform(val => parseInt(val))
-                .pipe(z.number().positive())
+                .transform(val => val === "true")
                 .optional()
+                .default(false),
 });
 
 export type LeaderboardQueryRequest = z.infer<typeof leaderboardQuerySchema>;
