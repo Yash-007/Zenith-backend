@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { createUser, getUserByEmail, getUserById } from "../repo/user";
-import { createUserSchema, loginUserSchema, CreateUserRequest, GetUserResponse, LoginUserRequest, LoginOrRegisterUserResponse, UserResponse } from "../types/user.types";
+import { createUser, fetchLeaderboard, fetchUserRankLeaderboard, getUserByEmail, getUserById } from "../repo/user";
+import { createUserSchema, loginUserSchema, CreateUserRequest, GetUserResponse, LoginUserRequest, LoginOrRegisterUserResponse, UserResponse, LeaderboardQueryRequest, leaderboardQuerySchema } from "../types/user.types";
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
-import { ErrorResponse } from "../types/common.types";
+import { ErrorResponse, SuccessResponse } from "../types/common.types";
 
 const saltRounds = 10;
 
@@ -22,6 +22,10 @@ export const CreateUserController = async (
         }
 
         const validatedData = result.data;
+
+        if (validatedData.city) {
+            validatedData.city = validatedData.city.toUpperCase();
+        }
         
         const hashedPassword = await bcrypt.hash(validatedData.password, saltRounds);
         const userData = {
@@ -122,6 +126,63 @@ export const GetUserController = async (req: Request & {userId?: string}, res: R
         console.error('Error getting user:', error);
         return res.status(500).json({
             message: 'Failed to get user',
+            success: false
+        } as ErrorResponse);
+    }
+}
+
+export const getLeaderboardController = async(req: Request<{},{},{},LeaderboardQueryRequest> & {userId?: string}, res: Response<SuccessResponse | ErrorResponse>) => {
+    try {
+        const result = leaderboardQuerySchema.safeParse(req.query);
+        if (!result.success) {
+            return res.status(400).json({
+                message: result.error.issues[0]?.message || 'Invalid query params',
+                success: false
+            } as ErrorResponse);
+        }
+
+        let {page, lowerAge, upperAge, city, fetchUser} = result.data;
+        const limit = 10;
+        if (!fetchUser) {
+            const leaderboard = await fetchLeaderboard(page, limit, lowerAge, upperAge, city as string);
+            if (!leaderboard) {
+                return res.status(400).json({
+                    message: 'Leaderboard not found',
+                    success: false
+                } as ErrorResponse);
+            }
+            return res.status(200).json({
+                success: true,
+                message: 'Leaderboard fetched successfully',
+                data: leaderboard
+            } as SuccessResponse);
+        }
+
+        const user = await getUserById(req.userId as string);
+        if (!user) {
+            return res.status(400).json({
+                message: 'User not found',
+                success: false
+            } as ErrorResponse);
+        }
+        
+        const leaderboard = await fetchUserRankLeaderboard(user, limit);
+        if (!leaderboard) {
+            return res.status(400).json({
+                message: 'Leaderboard not found',
+                success: false
+            } as ErrorResponse);
+        }
+        return res.status(200).json({
+            success: true,
+            message: 'Leaderboard fetched successfully',
+            data: leaderboard
+        } as SuccessResponse);
+
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        return res.status(500).json({
+            message: 'Failed to fetch leaderboard',
             success: false
         } as ErrorResponse);
     }
