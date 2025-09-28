@@ -6,10 +6,13 @@ import challengeRouter from './routes/challenge';
 import submissionRouter from './routes/submission';
 import rewardRouter from './routes/reward';
 import chatRouter from './routes/chat';
+import redisClient from './clients/redis';
 dotenv.config();
+
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+
 
 app.use("/uploads", express.static('uploads'))
 

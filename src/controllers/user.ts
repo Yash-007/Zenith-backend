@@ -4,6 +4,8 @@ import { createUserSchema, loginUserSchema, CreateUserRequest, GetUserResponse, 
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
+import { getLeaderboardCacheKey, getUserRankLeaderboardCacheKey } from "../utils/functions";
+import redisClient from "../clients/redis";
 
 const saltRounds = 10;
 
@@ -145,6 +147,15 @@ export const getLeaderboardController = async(req: Request<{},{},{},LeaderboardQ
         page = page || 1;
         const limit = 10;
         if (!fetchUser) {
+            const cacheKey = getLeaderboardCacheKey(page, lowerAge, upperAge, city as string);
+            const cachedLeaderboard = await redisClient.get(cacheKey);
+            if (cachedLeaderboard) {
+                return res.status(200).json({
+                    success: true,
+                    message: 'Leaderboard fetched successfully',
+                    data: JSON.parse(cachedLeaderboard)
+                } as SuccessResponse);
+            }
             const leaderboard = await fetchLeaderboard(page, limit, lowerAge, upperAge, city as string);
             if (!leaderboard) {
                 return res.status(400).json({
@@ -152,6 +163,9 @@ export const getLeaderboardController = async(req: Request<{},{},{},LeaderboardQ
                     success: false
                 } as ErrorResponse);
             }
+
+            await redisClient.setex(cacheKey, 60*15, JSON.stringify(leaderboard));
+
             return res.status(200).json({
                 success: true,
                 message: 'Leaderboard fetched successfully',
@@ -166,6 +180,17 @@ export const getLeaderboardController = async(req: Request<{},{},{},LeaderboardQ
                 success: false
             } as ErrorResponse);
         }
+
+        const cacheKey = getUserRankLeaderboardCacheKey(user.id);
+        const cachedLeaderboard = await redisClient.get(cacheKey);
+
+        if (cachedLeaderboard) {
+            return res.status(200).json({
+                success: true,
+                message: 'Leaderboard fetched successfully',
+                data: JSON.parse(cachedLeaderboard)
+            } as SuccessResponse);
+        }
         
         const leaderboard = await fetchUserRankLeaderboard(user, limit);
         if (!leaderboard) {
@@ -174,6 +199,8 @@ export const getLeaderboardController = async(req: Request<{},{},{},LeaderboardQ
                 success: false
             } as ErrorResponse);
         }
+        await redisClient.setex(cacheKey, 60*15, JSON.stringify(leaderboard));
+
         return res.status(200).json({
             success: true,
             message: 'Leaderboard fetched successfully',
