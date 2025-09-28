@@ -142,6 +142,7 @@ export const getLeaderboardController = async(req: Request<{},{},{},LeaderboardQ
         }
 
         let {page, lowerAge, upperAge, city, fetchUser} = result.data;
+        page = page || 1;
         const limit = 10;
         if (!fetchUser) {
             const leaderboard = await fetchLeaderboard(page, limit, lowerAge, upperAge, city as string);

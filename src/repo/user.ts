@@ -74,7 +74,6 @@ export const updateUserWithSpecificFields = async(userId: string, userFields: {[
 export const fetchLeaderboard = async(page: number, limit: number, lowerAge: number, upperAge: number, city: string): Promise<User[]> => {
     try {
         const filters: {[key:string]: any} = {};
-        page = page || 1;
         limit = limit || 10;
         lowerAge = lowerAge || 0;
         upperAge = upperAge || 100;
