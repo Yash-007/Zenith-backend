@@ -8,6 +8,7 @@ import rewardRouter from './routes/reward';
 import chatRouter from './routes/chat';
 import redisClient from './clients/redis';
 import { updateUsersCurrentStreakJob } from './jobs/updateUsersStreak';
+import categoryRouter from './routes/category';
 dotenv.config();
 
 const app: Express = express();
@@ -36,6 +37,7 @@ app.use("/api/v1/challenge", challengeRouter);
 app.use("/api/v1/submission", submissionRouter);
 app.use("/api/v1/reward", rewardRouter);
 app.use("/api/v1/chat", chatRouter);
+app.use("/api/v1/category", categoryRouter);
 
 
 updateUsersCurrentStreakJob();
