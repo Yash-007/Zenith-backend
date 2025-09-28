@@ -56,7 +56,7 @@ export const leaderboardQuerySchema = z.object({
          .transform(age => parseInt(age))
          .pipe(z.number().positive())
          .optional()
-         .default(0),
+         .default(100),
     city: z.string()
          .optional(),
     fetchUser: z.string()
