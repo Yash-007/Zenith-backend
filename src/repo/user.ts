@@ -1,5 +1,5 @@
 import { PrismaClient, User } from "@prisma/client";
-import { CreateUserRequest } from "../types/user.types";
+import { CreateUserRequest, LeaderboardData } from "../types/user.types";
 import { string } from "zod";
 const prisma = new PrismaClient();
 
@@ -71,7 +71,7 @@ export const updateUserWithSpecificFields = async(userId: string, userFields: {[
     }
 }
 
-export const fetchLeaderboard = async(page: number, limit: number, lowerAge: number, upperAge: number, city: string): Promise<User[]> => {
+export const fetchLeaderboard = async(page: number, limit: number, lowerAge: number, upperAge: number, city: string): Promise<LeaderboardData | null> => {
     try {
         const filters: {[key:string]: any} = {};
         limit = limit || 10;
@@ -99,15 +99,29 @@ export const fetchLeaderboard = async(page: number, limit: number, lowerAge: num
             take: limit,
         });
 
-        return users as User[];
+        const totalCount = await prisma.user.count({
+            where: filters
+        });
+        const totalPages = Math.ceil(totalCount/limit);
+
+        const leaderboardData: LeaderboardData = {
+            users: users as User[],
+            currentPage: page,
+            totalPages: totalPages
+        }
+
+        return leaderboardData;
     } catch (error) {
         console.error('Error fetching leaderboard:', error);
         throw error;
     }
 }
 
-export const fetchUserRankLeaderboard = async(user: User, limit: number): Promise<User[] | null> => {
+export const fetchUserRankLeaderboard = async(user: User, limit: number): Promise<LeaderboardData | null> => {
     try {
+        const totatCount = await prisma.user.count();
+        const totalPages = Math.ceil(totatCount/limit);
+
         const userRankQuery = await prisma.user.aggregate({
             _count: {
                 _all: true
@@ -199,7 +213,12 @@ export const fetchUserRankLeaderboard = async(user: User, limit: number): Promis
 
         const remainingUsersLimit = limit - userLimit;
         if (!remainingUsersLimit) {
-            return users as User[];
+            const leaderboardData: LeaderboardData = {
+                users: users as User[],
+                currentPage: page,
+                totalPages: totalPages
+            }
+            return leaderboardData;
         }
 
         let remainingUsers = await prisma.user.findMany({
@@ -232,7 +251,14 @@ export const fetchUserRankLeaderboard = async(user: User, limit: number): Promis
         });
 
         const finalUsers = [...users as User[], ...remainingUsers as User[]];
-        return finalUsers;
+
+        const leaderboardData: LeaderboardData = {
+            users: finalUsers as User[],
+            currentPage: page,
+            totalPages: totalPages
+        }
+
+        return leaderboardData;
 
     } catch (error) {
         console.error('Error fetching user rank leaderboard:', error);

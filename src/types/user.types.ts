@@ -66,3 +66,9 @@ export const leaderboardQuerySchema = z.object({
 });
 
 export type LeaderboardQueryRequest = z.infer<typeof leaderboardQuerySchema>;
+
+export type LeaderboardData = {
+    users: User[],
+    currentPage: number,
+    totalPages: number
+}
