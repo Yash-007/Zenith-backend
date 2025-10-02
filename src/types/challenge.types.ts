@@ -1,4 +1,4 @@
-import { Challenge, Submission } from "@prisma/client";
+import { Challenge, Submission, SubmissionStatus } from "@prisma/client";
 
 export type CreateChallengeRequest = {
     title: string;
@@ -21,4 +21,10 @@ export type UserChallengesResponse = {
         [key: number]: Challenge[]
     }
     recentPendingSubmissionChallenge?: Challenge | null
+}
+
+export interface ChallengeWithSubmission extends Challenge {
+    isSubmitted: boolean;
+    submissionStatus?: SubmissionStatus;
+    submissionId?: string;
 }

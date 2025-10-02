@@ -1,4 +1,4 @@
-import { SubmissionWithChallenge, submitSubmissionRequest, submitSubmissionSchema, updateSubmissionStatusRequest, updateSubmissionStatusSchema } from "../types/submission.types";
+import { submitSubmissionRequest, submitSubmissionSchema, updateSubmissionStatusRequest, updateSubmissionStatusSchema } from "../types/submission.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import { createSubmission, fetchAllSubmissions, fetchLastTenSubmissionsByUserId, fetchSubmissionByChallengeIdAndUserId, fetchSubmissionBySubmissionId, updateSubmissionStatus } from "../repo/submission";
 import { Request, Response } from "express";
@@ -167,26 +167,10 @@ export const getSubmissionBySubmissionId = async(req: Request<{},{},{},{submissi
               } as ErrorResponse);
         }
 
-        const submissionWithChallenge: SubmissionWithChallenge = {
-            ...submission,
-        };
-
-        if (submission.isChallengeExists) {
-            const challenge = await getChallengeById(submission.challengeId);
-            if (!challenge) {
-                return res.status(404).json({
-                    success: false,
-                    message: "challenge not found"
-                } as ErrorResponse);
-            }
-
-            submissionWithChallenge.challengeName = challenge.title;
-        }
-
         return res.status(200).json({
             success: true,
             message: "Submissions fetched successfully",
-            data : submissionWithChallenge,
+            data : submission,
          } as SuccessResponse);    
     } catch (error) {
         console.error("error fetching submission", error);

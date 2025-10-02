@@ -61,6 +61,7 @@ model Submission {
     id String @unique @default(uuid())
     userId String 
     challengeId String
+    challengeName String
     isChallengeExists Boolean @default(true)
     proofs Json
     status SubmissionStatus @default(PENDING)

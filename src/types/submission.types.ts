@@ -1,7 +1,9 @@
+import { Challenge, Submission } from "@prisma/client";
 import {z} from "zod";
 
 export const submitSubmissionSchema = z.object({
     challengeId: z.string(),
+    challengeName: z.string(),
     status: z.enum(["PENDING", "COMPLETED", "REJECTED"]),
     isChallengeExists: z.preprocess((val) => val === "true", z.boolean()),
     text: z.string().optional()

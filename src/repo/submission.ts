@@ -93,7 +93,7 @@ export const fetchUserRecentPendingSubmissionChallengeId = async(userId: string)
            orderBy: {submittedAt: "desc"}
         });
 
-        return challengeId;
+        return challengeId as {challengeId: string} | null;
     } catch (error) {
         console.error("error fetching pending submission from db", error);
         throw error;
