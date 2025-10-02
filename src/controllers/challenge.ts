@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
-import { CreateChallengeRequest, UserChallengesResponse } from "../types/challenge.types";
+import { ChallengeWithSubmission, CreateChallengeRequest, UserChallengesResponse } from "../types/challenge.types";
 import { createChallenge, getChallengeById, fetchAllChallenges, getChallengesByCategoryExcluding} from "../repo/challenge";
 import { getUserById } from "../repo/user";
-import { fetchAllSubmissions, fetchUserRecentPendingSubmissionChallengeId } from "../repo/submission";
+import { fetchAllSubmissions, fetchSubmissionByChallengeIdAndUserId, fetchUserRecentPendingSubmissionChallengeId } from "../repo/submission";
 import { Challenge } from "@prisma/client";
 
 export const createChallengeController = async(req: Request<{}, {}, CreateChallengeRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
@@ -26,7 +26,7 @@ export const createChallengeController = async(req: Request<{}, {}, CreateChalle
     }
 }
 
-export const getChallengById = async (req: Request<{}, {}, {}, {id: string}>, res: Response<SuccessResponse | ErrorResponse>) => {
+export const getChallengById = async (req: Request<{}, {}, {}, {id: string}> & {userId?: string}, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
         const challengeId = req.query.id;
         if (!challengeId) {
@@ -44,10 +44,22 @@ export const getChallengById = async (req: Request<{}, {}, {}, {id: string}>, re
             } as ErrorResponse);
         }
 
+        const submission = await fetchSubmissionByChallengeIdAndUserId(challengeId as string, req.userId as string);
+        const challengeWithSubmission: ChallengeWithSubmission = {
+            ...challenge,
+            isSubmitted: false
+        };
+
+        if (submission) {
+            challengeWithSubmission.isSubmitted = true;
+            challengeWithSubmission.submissionStatus = submission.status;
+            challengeWithSubmission.submissionId = submission.id;
+        }
+
         return res.status(200).json({   
             message: 'Challenge fetched successfully',
             success: true,
-            data: challenge
+            data: challengeWithSubmission
         } as SuccessResponse);
     } catch (error) {
         console.error('Error getting challenge by id:', error);
