@@ -9,7 +9,9 @@ import chatRouter from './routes/chat';
 import redisClient from './clients/redis';
 import { updateUsersCurrentStreakJob } from './jobs/updateUsersStreak';
 import categoryRouter from './routes/category';
+import cors from 'cors';
 dotenv.config();
+
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
@@ -19,6 +21,9 @@ app.use("/uploads", express.static('uploads'))
 
 // Middleware for JSON parsing
 app.use(express.json());
+app.use(cors({
+  origin: "*"
+}))
 
 // Basic route
 app.get('/', (req: Request, res: Response) => {
