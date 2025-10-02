@@ -108,7 +108,7 @@ export const LoginUserController = async (
     }
 }
 
-export const GetUserController = async (req: Request & {userId?: string}, res: Response<UserResponse | ErrorResponse>) => {
+export const GetUserController = async (req: Request & {userId?: string}, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
         const user = await getUserById(req.userId as string)
         if (!user) {
@@ -118,12 +118,11 @@ export const GetUserController = async (req: Request & {userId?: string}, res: R
             } as ErrorResponse);
         }
         const {password, ...userWithoutPassword} = user;
-        const getUserReponse: GetUserResponse = {
-            user: userWithoutPassword,
+        return res.status(200).json({
+            success: true,
             message: 'User fetched successfully',
-            success: true
-        }
-        return res.status(200).json(getUserReponse);
+            data: userWithoutPassword
+        } as SuccessResponse);
     } catch (error) {
         console.error('Error getting user:', error);
         return res.status(500).json({
