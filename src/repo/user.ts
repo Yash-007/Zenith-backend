@@ -79,16 +79,11 @@ export const fetchLeaderboard = async(page: number, limit: number, lowerAge: num
         upperAge = upperAge || 100;
         const skip = (page - 1)* limit;
 
-        if (lowerAge) {
             filters["age"] = {
-                "gte": lowerAge
-            }
-        }
-        if (upperAge) {
-            filters["age"] = {
+                "gte": lowerAge,
                 "lte": upperAge
             }
-        }
+        
         if (city) {
             filters["city"] = city.toUpperCase();
         }
