@@ -3,6 +3,7 @@ import { Challenge, Submission, SubmissionStatus } from "@prisma/client";
 export type CreateChallengeRequest = {
     title: string;
     description: string;
+    longDescription: string;
     category:number;
     time:number;
     points:number;
