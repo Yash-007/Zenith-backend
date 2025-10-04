@@ -26,4 +26,10 @@ export const updateSubmissionStatusSchema = z.object({
     }),
 });
 
+export type SubmissionData = {
+    submissions: Submission[],
+    totalPages: number
+    currentPage: number
+}
+
 export type updateSubmissionStatusRequest = z.infer<typeof updateSubmissionStatusSchema>

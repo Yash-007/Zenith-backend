@@ -1,5 +1,5 @@
 import {PrismaClient, Submission, SubmissionStatus } from "@prisma/client";
-import { createSubmissionRequest, submitSubmissionRequest } from "../types/submission.types";
+import { createSubmissionRequest, SubmissionData, submitSubmissionRequest } from "../types/submission.types";
 
 const prisma = new PrismaClient();
 
@@ -57,10 +57,33 @@ export const fetchLastTenSubmissionsByUserId = async(userId: string): Promise<Su
     }
 }
 
-export const fetchAllSubmissions = async(userId: string):Promise<Submission[]> => {
+export const fetchAllSubmissionsWithPagination = async(userId: string, page: number, limit: number):Promise<SubmissionData> => {
     try {
-        const submissions = await prisma.submission.findMany();
-        return submissions;
+        const skip = (page - 1)* limit;
+        const submissions = await prisma.submission.findMany({
+            where: {
+                userId: userId
+            },
+            ...(page > 0 && {skip: skip}),
+            ...(page > 0 && {take: limit}),
+            orderBy: {submittedAt: "desc"}
+        });
+
+        const totalCount = await prisma.submission.count({
+            where: {
+                userId: userId
+            }
+        });
+
+        const totalPages = Math.ceil(totalCount/limit);
+
+        const submissionsData: SubmissionData = {
+            submissions: submissions as Submission[],
+            totalPages: totalPages,
+            currentPage: Number(page)
+        }
+
+        return submissionsData;
     } catch (error) {
         console.error("error fetching submissions from db", error);
         throw error;

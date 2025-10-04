@@ -1,6 +1,6 @@
 import { submitSubmissionRequest, submitSubmissionSchema, updateSubmissionStatusRequest, updateSubmissionStatusSchema } from "../types/submission.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
-import { createSubmission, fetchAllSubmissions, fetchLastTenSubmissionsByUserId, fetchSubmissionByChallengeIdAndUserId, fetchSubmissionBySubmissionId, updateSubmissionStatus } from "../repo/submission";
+import { createSubmission, fetchAllSubmissionsWithPagination, fetchLastTenSubmissionsByUserId, fetchSubmissionByChallengeIdAndUserId, fetchSubmissionBySubmissionId, updateSubmissionStatus } from "../repo/submission";
 import { Request, Response } from "express";
 import { getUserById, updateUserWithSpecificFields } from "../repo/user";
 import { getChallengeById } from "../repo/challenge";
@@ -131,10 +131,18 @@ export const getLastTenUserSubmissions = async (req: Request & {userId?: string}
  }
 }
 
-export const getAllUserSubmissions = async(req: Request & {userId?:string}, res: Response<SuccessResponse | ErrorResponse>) => {
+export const getAllUserSubmissions = async(req: Request<{},{},{}, {page?: number}> & {userId?:string}, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
+        let page = req.query.page || 0;
+        const limit = 8;
         const userId = req.userId as string;
-        const submissions = await fetchAllSubmissions(userId);
+        const submissions = await fetchAllSubmissionsWithPagination(userId, page, limit);
+        if (!submissions) {
+            return res.status(404).json({
+                success: false,
+                message: "Submissions not found"
+            } as ErrorResponse);
+        }
         return res.status(200).json({
             success: true,
             message: "Submissions fetched successfully",

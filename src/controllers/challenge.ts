@@ -3,7 +3,7 @@ import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import { ChallengeWithSubmission, CreateChallengeRequest, UserChallengesResponse } from "../types/challenge.types";
 import { createChallenge, getChallengeById, fetchAllChallenges, getChallengesByCategoryExcluding} from "../repo/challenge";
 import { getUserById } from "../repo/user";
-import { fetchAllSubmissions, fetchSubmissionByChallengeIdAndUserId, fetchUserRecentPendingSubmissionChallengeId } from "../repo/submission";
+import {fetchAllSubmissionsWithPagination, fetchSubmissionByChallengeIdAndUserId, fetchUserRecentPendingSubmissionChallengeId } from "../repo/submission";
 import { Category, Challenge } from "@prisma/client";
 import { fetchAllCategories } from "../repo/category";
 
@@ -105,8 +105,8 @@ export const getUserChallenges = async(req: Request & {userId?: string}, res: Re
     const allCategories = await fetchAllCategories() as Category[];
     const allCategoriesIds = allCategories?.map((category)=> category.id) || [];
 
-    const userSubmissions = await fetchAllSubmissions(userId);
-    const userSubmittedChallengeIds = userSubmissions?.map((sub)=> sub.challengeId) || [];
+    const userSubmissions = await fetchAllSubmissionsWithPagination(userId, 0, 0);
+    const userSubmittedChallengeIds = userSubmissions?.submissions?.map((sub)=> sub.challengeId) || [];
 
     const getChallengesByInterestsPromises: Promise<Challenge[]>[] = [];
     
