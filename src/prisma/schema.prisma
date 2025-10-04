@@ -42,6 +42,7 @@ model Challenge {
     id String @id @default(uuid())
     title String
     description String
+    longDescription String
     category Int
     time Int
     points Int
