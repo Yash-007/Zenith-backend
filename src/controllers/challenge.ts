@@ -4,7 +4,8 @@ import { ChallengeWithSubmission, CreateChallengeRequest, UserChallengesResponse
 import { createChallenge, getChallengeById, fetchAllChallenges, getChallengesByCategoryExcluding} from "../repo/challenge";
 import { getUserById } from "../repo/user";
 import { fetchAllSubmissions, fetchSubmissionByChallengeIdAndUserId, fetchUserRecentPendingSubmissionChallengeId } from "../repo/submission";
-import { Challenge } from "@prisma/client";
+import { Category, Challenge } from "@prisma/client";
+import { fetchAllCategories } from "../repo/category";
 
 export const createChallengeController = async(req: Request<{}, {}, CreateChallengeRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
@@ -101,18 +102,32 @@ export const getUserChallenges = async(req: Request & {userId?: string}, res: Re
         } as ErrorResponse);
     }
 
+    const allCategories = await fetchAllCategories() as Category[];
+    const allCategoriesIds = allCategories?.map((category)=> category.id) || [];
+
     const userSubmissions = await fetchAllSubmissions(userId);
     const userSubmittedChallengeIds = userSubmissions?.map((sub)=> sub.challengeId) || [];
 
     const getChallengesByInterestsPromises: Promise<Challenge[]>[] = [];
     
-    userInterests.forEach((interest)=>{
-        getChallengesByInterestsPromises.push(getChallengesByCategoryExcluding(Number(interest), userSubmittedChallengeIds))
+    allCategoriesIds.forEach((category)=>{
+        getChallengesByInterestsPromises.push(getChallengesByCategoryExcluding(Number(category), userSubmittedChallengeIds))
     });
+
+    const challengesforOtherCategories: Challenge[] = [];
 
     const allChallenges = await Promise.all(getChallengesByInterestsPromises);
     const challengesMappedWithInterests: {[key: number]: Challenge[]} = {};
-    allChallenges.forEach((challenges, idx)=> challengesMappedWithInterests[userInterests[idx] as number] = challenges);
+    allChallenges.forEach((challenges, idx)=> {
+        if (userInterests.includes(allCategoriesIds[idx] as number)) {
+            challengesMappedWithInterests[allCategoriesIds[idx] as number] = challenges
+        } else {
+            challengesforOtherCategories.push(...challenges);
+        }
+  });
+
+  challengesMappedWithInterests[-1] = challengesforOtherCategories;
+
 
     const finalResp: UserChallengesResponse = {
         challengesByInterest: challengesMappedWithInterests,
