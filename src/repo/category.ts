@@ -17,10 +17,10 @@ export const createCategory = async(createCategoryRequest: CreateCategoryRequest
     }
 }
 
-export const fetchAllCategories = async(): Promise<Category[]> => {
+export const fetchAllCategories = async(): Promise<Category[] | null> => {
     try {
         const categories = await prisma.category.findMany();
-        return categories;
+        return categories as Category[];
     } catch (error) {
         console.error('Error fetching categories from db:', error);
         throw error;

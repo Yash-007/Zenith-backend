@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
-import { answerUserQuerySchema } from "../types/chat.types";
+import { QueryType, answerUserQuerySchema, ChatResponse } from "../types/chat.types";
 import { fetchUserChats, storeUserQueryAndResponse } from "../repo/chat";
+import { determineQueryType, getPromptForQueryType, getUserContextString } from "../utils/chat.utils";
+import { getUserById } from "../repo/user";
 import { answerQuery } from "../clients/gemini";
-
+import { writeContextToFile } from "../utils/file.utils";
 
 export const answerUserQuery = async(req: Request & {userId?: string}, res: Response) => {
     try {
@@ -14,29 +16,55 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
                 success: false
             } as ErrorResponse);
         }
+
         const { query } = result.data;
         const userId = req.userId as string;
-        const response = await answerQuery(query);
+
+        // First, determine query type
+        const queryType = await determineQueryType(query);
+
+        // Get user context if needed
+        let userContext = "";
+        if (queryType === QueryType.USER_INFO) {
+            const user = await getUserById(userId);
+            if (!user) {
+                return res.status(404).json({
+                    message: 'User not found',
+                    success: false
+                } as ErrorResponse);
+            }
+            userContext = await getUserContextString(user);
+            
+            // Temporarily save context to file for verification
+            await writeContextToFile(userContext, userId);
+        }
+
+        // Get appropriate prompt and generate response
+        const prompt = getPromptForQueryType(queryType, userContext);
+        const response = await answerQuery(prompt + "\nQuery: " + query);
+        console.log("response", response);
+        // Store in database
         const chat = await storeUserQueryAndResponse(userId, query, response);
         if (!chat) {
-            console.error('Failed to store user query and response');
             return res.status(200).json({
                 message: 'User query answered successfully',
                 success: true,
                 data: {
                     query,
                     response,
-                }
+                    queryType: queryType
+                } as ChatResponse
             } as SuccessResponse);
         }
-        const {query: chatQuery, response: chatResponse} = chat;
+
         return res.status(200).json({
             message: 'User query answered successfully',
             success: true,
             data: {
-                query: chatQuery,
-                response: chatResponse
-            }
+                query: chat.query,
+                response: chat.response,
+                queryType: queryType
+            } as ChatResponse
         } as SuccessResponse);
     } catch (error) {
         console.error('Error answering user query:', error);
