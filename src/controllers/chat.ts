@@ -41,8 +41,11 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
 
         // Get appropriate prompt and generate response
         const prompt = getPromptForQueryType(queryType, userContext);
-        const response = await answerQuery(prompt + "\nQuery: " + query);
-        console.log("response", response);
+        let response = await answerQuery(prompt + "\nQuery: " + query);
+        
+        // Clean the response - remove markdown formatting
+        response = response.replace(/\*\*/g, '');
+        console.log("cleaned response", response);
         // Store in database
         const chat = await storeUserQueryAndResponse(userId, query, response);
         if (!chat) {
