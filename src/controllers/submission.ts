@@ -1,6 +1,6 @@
 import { submitSubmissionRequest, submitSubmissionSchema, updateSubmissionStatusRequest, updateSubmissionStatusSchema } from "../types/submission.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
-import { createSubmission, fetchAllSubmissionsWithPagination, fetchLastTenSubmissionsByUserId, fetchSubmissionByChallengeIdAndUserId, fetchSubmissionBySubmissionId, updateSubmissionStatus } from "../repo/submission";
+import { createSubmission, fetchAllSubmissionsWithPagination, fetchLastTenSubmissionsByUserId, fetchSubmissionByChallengeIdAndUserId, fetchSubmissionBySubmissionId, fetchUserLastSubmission, updateSubmissionStatus } from "../repo/submission";
 import { Request, Response } from "express";
 import { getUserById, updateUserWithSpecificFields } from "../repo/user";
 import { getChallengeById } from "../repo/challenge";
@@ -44,13 +44,20 @@ export const submitChallengeController= async (req: Request<{}, {}, submitSubmis
 
        const user = await getUserById(userId);
 
-       const userFields = {
-        currentStreak: user.currentStreak+1,
-        longestStreak: Math.max(user.longestStreak, user.currentStreak+1),
+       const userFields: Partial<User> = {
         challengesSubmitted: user.challengesSubmitted+1,
         challengesInReview: user.challengesInReview+1,
        }
 
+       const endDate = new Date();
+       endDate.setHours(0, 0, 0, 0);
+       const userLastSubmission = await fetchUserLastSubmission(userId);
+
+       if (!userLastSubmission || userLastSubmission.submittedAt < endDate) {
+       userFields["currentStreak"] = user.currentStreak+1;
+       userFields["longestStreak"] = Math.max(user.longestStreak, user.currentStreak+1);
+     }
+     
        const updatedUser = await updateUserWithSpecificFields(userId, userFields);
 
        if (!updatedUser) {
