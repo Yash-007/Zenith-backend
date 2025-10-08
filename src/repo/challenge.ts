@@ -53,7 +53,7 @@ export const getChallengesByCategoryExcluding = async(categoryId: number, challe
                 }
         },
         orderBy: {level: "asc"},
-        take: 2,
+        take: 10,
     });
     return challenges;
  } catch (error) {

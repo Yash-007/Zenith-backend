@@ -71,7 +71,7 @@ export const updateUserWithSpecificFields = async(userId: string, userFields: {[
     }
 }
 
-export const fetchLeaderboard = async(page: number, limit: number, lowerAge: number, upperAge: number, city: string): Promise<LeaderboardData | null> => {
+export const fetchLeaderboard = async(page: number, limit: number, lowerAge: number | undefined, upperAge: number | undefined, city: string): Promise<LeaderboardData | null> => {
     try {
         const filters: {[key:string]: any} = {};
         limit = limit || 10;
@@ -79,13 +79,16 @@ export const fetchLeaderboard = async(page: number, limit: number, lowerAge: num
         upperAge = upperAge || 100;
         const skip = (page - 1)* limit;
 
+        if (lowerAge && upperAge) {
             filters["age"] = {
                 "gte": lowerAge,
                 "lte": upperAge
             }
-        
+        }
         if (city) {
-            filters["city"] = city.toUpperCase();
+            filters["city"] = {
+                contains: city.toUpperCase()
+            };
         }
 
         const users = await prisma.user.findMany({

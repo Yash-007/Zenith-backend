@@ -36,7 +36,7 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
             userContext = await getUserContextString(user);
             
             // Temporarily save context to file for verification
-            await writeContextToFile(userContext, userId);
+            // await writeContextToFile(userContext, userId);
         }
 
         // Get appropriate prompt and generate response

@@ -1,4 +1,4 @@
-export const getLeaderboardCacheKey = (page: number, lowerAge: number, upperAge: number, city: string) => {
+export const getLeaderboardCacheKey = (page: number, lowerAge: number | undefined, upperAge: number | undefined, city: string) => {
     return `leaderboard:page_${page}_lowerAge_${lowerAge}_upperAge_${upperAge}_city_${city}`
 }
 

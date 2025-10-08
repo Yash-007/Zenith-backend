@@ -50,13 +50,11 @@ export const leaderboardQuerySchema = z.object({
     lowerAge: z.string()
          .transform(age => parseInt(age))
          .pipe(z.number().positive())
-         .optional()
-         .default(0),
+         .optional(),
     upperAge: z.string()
          .transform(age => parseInt(age))
          .pipe(z.number().positive())
-         .optional()
-         .default(100),
+         .optional(),
     city: z.string()
          .optional(),
     fetchUser: z.string()

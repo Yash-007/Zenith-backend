@@ -34,6 +34,7 @@ export const submitChallengeController= async (req: Request<{}, {}, submitSubmis
             }
         };
         delete submission.text
+       const userLastSubmission = await fetchUserLastSubmission(userId);
        const createdSubmission = await createSubmission(submission);
        if (!createdSubmission){
         return res.status(500).json({ 
@@ -51,8 +52,6 @@ export const submitChallengeController= async (req: Request<{}, {}, submitSubmis
 
        const endDate = new Date();
        endDate.setHours(0, 0, 0, 0);
-       const userLastSubmission = await fetchUserLastSubmission(userId);
-
        if (!userLastSubmission || userLastSubmission.submittedAt < endDate) {
        userFields["currentStreak"] = user.currentStreak+1;
        userFields["longestStreak"] = Math.max(user.longestStreak, user.currentStreak+1);

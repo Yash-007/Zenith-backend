@@ -4,10 +4,10 @@ import { authenticateToken } from "../middlewares/auth";
 
 const categoryRouter = Router();
 
-categoryRouter.use(authenticateToken);
-
-categoryRouter.post("/", createCategoryController);
 categoryRouter.get("/", getAllCategories);
+
+categoryRouter.use(authenticateToken);
+categoryRouter.post("/", createCategoryController);
 categoryRouter.get("/ids", getCategoriesByIds);
 
 export default categoryRouter;
