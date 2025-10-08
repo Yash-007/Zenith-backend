@@ -291,5 +291,7 @@ ${userContext}
 Answer their question based on their data and provide encouraging feedback on their progress.`;
         case QueryType.GENERAL:
             return GENERAL_PROMPT;
+        case QueryType.IRRELEVANT:
+            return "";
     }
 };

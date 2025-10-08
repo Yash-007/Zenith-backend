@@ -25,6 +25,7 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
 
         // Get user context if needed
         let userContext = "";
+        let response = "";
         if (queryType === QueryType.USER_INFO) {
             const user = await getUserById(userId);
             if (!user) {
@@ -39,13 +40,16 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
             // await writeContextToFile(userContext, userId);
         }
 
-        // Get appropriate prompt and generate response
-        const prompt = getPromptForQueryType(queryType, userContext);
-        let response = await answerQuery(prompt + "\nQuery: " + query);
-        
-        // Clean the response - remove markdown formatting
-        response = response.replace(/\*\*/g, '');
+            // Get appropriate prompt and generate response
+            const prompt = getPromptForQueryType(queryType, userContext);
+            if (!prompt) {
+                response = "I'm sorry, I can't answer that question.";
+            } else {
+            response = await answerQuery(prompt + "\nQuery: " + query);
+            response = response.replace(/\*\*/g, '');
+           }
         console.log("cleaned response", response);
+
         // Store in database
         const chat = await storeUserQueryAndResponse(userId, query, response);
         if (!chat) {

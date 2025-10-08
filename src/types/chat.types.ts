@@ -3,7 +3,8 @@ import z from "zod";
 export enum QueryType {
     PLATFORM_INFO = "PLATFORM_INFO",
     USER_INFO = "USER_INFO",
-    GENERAL = "GENERAL"
+    GENERAL = "GENERAL",
+    IRRELEVANT = "IRRELEVANT"
 }
 
 export const answerUserQuerySchema = z.object({

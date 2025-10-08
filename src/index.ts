@@ -1,6 +1,7 @@
 import { Express, Request, Response, NextFunction } from 'express';
 import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
 import userRouter from './routes/user';
 import challengeRouter from './routes/challenge';
 import submissionRouter from './routes/submission';
@@ -10,11 +11,8 @@ import redisClient from './clients/redis';
 import { updateUsersCurrentStreakJob } from './jobs/updateUsersStreak';
 import categoryRouter from './routes/category';
 import cors from 'cors';
-dotenv.config();
-
-
+import geminiClient from './clients/gemini';
 const app: Express = express();
-const port = process.env.PORT || 3000;
 
 
 app.use("/uploads", express.static('uploads'))
@@ -24,6 +22,8 @@ app.use(express.json());
 app.use(cors({
   origin: "*"
 }))
+
+const port = process.env.PORT || 3000;
 
 // Basic route
 app.get('/', (req: Request, res: Response) => {
@@ -45,7 +45,7 @@ app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/category", categoryRouter);
 
 
-updateUsersCurrentStreakJob();
+// updateUsersCurrentStreakJob();
 
 // Start server
 app.listen(port, () => {
