@@ -5,3 +5,11 @@ export const getLeaderboardCacheKey = (page: number, lowerAge: number | undefine
 export const getUserRankLeaderboardCacheKey = (userId: string) => {
     return `leaderboard:userId_${userId}`
 }
+
+export const getUserChallengesCacheKey = (userId: string) => {
+    return `challenges:userId_${userId}`
+}
+
+export const getCategoriesCacheKey = () => {
+    return `categories`
+}

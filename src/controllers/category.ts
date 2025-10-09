@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { CreateCategoryRequest, createCategorySchema, getCategoriesByIdsQuerySchema, GetCategoriesByIdsQueryType } from "../types/category.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import { createCategory, fetchAllCategories, fetchCategoriesByIds } from "../repo/category";
+import { getCategoriesCacheKey } from "../utils/functions";
+import redisClient from "../clients/redis";
 
 export const createCategoryController = async(req:Request<{}, {}, CreateCategoryRequest>, res:Response) => {
     try {
@@ -20,6 +22,7 @@ export const createCategoryController = async(req:Request<{}, {}, CreateCategory
                 success: false
             } as ErrorResponse);
         }
+        await redisClient.del(getCategoriesCacheKey());
         return res.status(201).json({
             message: 'Category created successfully',
             success: true,
@@ -36,7 +39,18 @@ export const createCategoryController = async(req:Request<{}, {}, CreateCategory
 
 export const getAllCategories = async(req: Request, res: Response<ErrorResponse | SuccessResponse>) => {
     try {
+        const cacheKey = getCategoriesCacheKey();
+        const cachedCategories = await redisClient.get(cacheKey);
+        if (cachedCategories) {
+            return res.status(200).json({
+                success: true,
+                message: 'Categories fetched successfully',
+                data: JSON.parse(cachedCategories)
+            } as SuccessResponse);
+        }
+
         const categories = await fetchAllCategories();
+        await redisClient.set(cacheKey, JSON.stringify(categories));
         return res.status(200).json({
             success: true,
             message: 'Categories fetched successfully',

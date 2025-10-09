@@ -5,6 +5,8 @@ import { Request, Response } from "express";
 import { getUserById, updateUserWithSpecificFields } from "../repo/user";
 import { getChallengeById } from "../repo/challenge";
 import { User } from "@prisma/client";
+import { getUserChallengesCacheKey } from "../utils/functions";
+import redisClient from "../clients/redis";
 
 export const submitChallengeController= async (req: Request<{}, {}, submitSubmissionRequest> & {userId?: string}, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
@@ -65,6 +67,8 @@ export const submitChallengeController= async (req: Request<{}, {}, submitSubmis
             message: "Failed to update user"
         } as ErrorResponse);
        }
+
+       await redisClient.del(getUserChallengesCacheKey(userId));
 
         return res.status(201).json({
             success: true,

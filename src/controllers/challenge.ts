@@ -6,6 +6,8 @@ import { getUserById } from "../repo/user";
 import {fetchAllSubmissionsWithPagination, fetchSubmissionByChallengeIdAndUserId, fetchUserRecentPendingSubmissionChallengeId } from "../repo/submission";
 import { Category, Challenge } from "@prisma/client";
 import { fetchAllCategories } from "../repo/category";
+import { getUserChallengesCacheKey } from "../utils/functions";
+import redisClient from "../clients/redis";
 
 export const createChallengeController = async(req: Request<{}, {}, CreateChallengeRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
@@ -91,6 +93,18 @@ export const getAllChallenges = async (req: Request, res: Response<ErrorResponse
 export const getUserChallenges = async(req: Request & {userId?: string}, res: Response) => {
   try {
     const userId = req.userId as string;
+    const cacheKey = getUserChallengesCacheKey(userId);
+    let cachedUserChallenges = await redisClient.get(cacheKey);
+    if (cachedUserChallenges) {
+      cachedUserChallenges = JSON.parse(cachedUserChallenges);
+      return res.status(200).json({
+        success: true,
+        message: "User Challenges fetched successfully",
+        data: cachedUserChallenges
+      } as SuccessResponse);
+    }
+
+
     const user = await getUserById(userId);
 
     const userInterests = user.interests;
@@ -138,6 +152,8 @@ export const getUserChallenges = async(req: Request & {userId?: string}, res: Re
         const userRecentPendingSubmissionChallenge = await getChallengeById(userRecentPendingSubmissionChallengeId.challengeId)
         finalResp.recentPendingSubmissionChallenge = userRecentPendingSubmissionChallenge;
     }
+
+    await redisClient.set(cacheKey, JSON.stringify(finalResp));
 
 
     return res.status(200).json({
