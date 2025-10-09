@@ -13,3 +13,7 @@ export const getUserChallengesCacheKey = (userId: string) => {
 export const getCategoriesCacheKey = () => {
     return `categories`
 }
+
+export const getUserChatsCacheKey = (userId: string) => {
+    return `chats:userId_${userId}`
+}

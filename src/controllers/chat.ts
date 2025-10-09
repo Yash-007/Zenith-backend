@@ -6,6 +6,8 @@ import { determineQueryType, getPromptForQueryType, getUserContextString } from 
 import { getUserById } from "../repo/user";
 import { answerQuery } from "../clients/gemini";
 import { writeContextToFile } from "../utils/file.utils";
+import { getUserChatsCacheKey } from "../utils/functions";
+import redisClient from "../clients/redis";
 
 export const answerUserQuery = async(req: Request & {userId?: string}, res: Response) => {
     try {
@@ -20,6 +22,8 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
         const { query } = result.data;
         const userId = req.userId as string;
 
+        const cacheKey = getUserChatsCacheKey(userId);
+        await redisClient.del(cacheKey);
         // First, determine query type
         const queryType = await determineQueryType(query);
 
@@ -85,7 +89,18 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
 export const getUserChats = async(req: Request & {userId?: string}, res: Response) => {
     try {
         const userId = req.userId as string;
+        const cacheKey = getUserChatsCacheKey(userId);
+        const cachedChats = await redisClient.get(cacheKey);
+        if (cachedChats) {
+            return res.status(200).json({
+                message: 'User chats fetched successfully',
+                success: true,
+                data: JSON.parse(cachedChats)
+            } as SuccessResponse);
+        }
         const chats = await fetchUserChats(userId);
+
+        await redisClient.set(cacheKey, JSON.stringify(chats));
 
         return res.status(200).json({
             message: 'User chats fetched successfully',
