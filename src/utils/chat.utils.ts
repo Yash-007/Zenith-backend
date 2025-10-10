@@ -276,7 +276,6 @@ Answer the user's question following these guidelines.`;
 
 export const determineQueryType = async (query: string): Promise<QueryTypeResult> => {
     const response = await answerQuery(QUERY_CLASSIFIER_PROMPT + "\nQuery: " + query);
-    console.log("response", response.trim());
     return response.trim() as QueryTypeResult;
 };
 
