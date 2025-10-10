@@ -45,7 +45,7 @@ app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/category", categoryRouter);
 
 
-// updateUsersCurrentStreakJob();
+updateUsersCurrentStreakJob();
 
 // Start server
 app.listen(port, () => {

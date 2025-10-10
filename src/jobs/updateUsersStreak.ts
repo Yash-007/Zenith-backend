@@ -1,18 +1,21 @@
 import { fetchUserLastSubmission } from "../repo/submission";
 import { fetchAllUsers, updateUserWithSpecificFields } from "../repo/user";
 import { Submission, User } from "@prisma/client";
+import * as cron from "node-cron";
 
-
+// cron job at 00:01 AM every day
 export const updateUsersCurrentStreakJob = async () => {
-  setInterval(async ()=> {
+  cron.schedule("1 0 * * *", async() => {
+    console.log("Updating users current streak......", new Date());
     await updateUsersCurrentStreak();
-  }, 1000*60);
+ }, {
+  timezone: "Asia/Kolkata"
+ })
 }
 
 
 export const updateUsersCurrentStreak = async () => {
   try { 
-    console.log("Updating users current streak......");
     const users = await fetchAllUsers();
     const userMap :{[key: string]: User} = {};
     const userLastSubmissionsPromises: Promise<Submission | null>[] = [];
@@ -40,9 +43,10 @@ export const updateUsersCurrentStreak = async () => {
 
       if (submission.submittedAt < startDate) {
         updateUserPromises.push(updateUserWithSpecificFields(submission.userId, {currentStreak: 0}));
-      } else if (submission.submittedAt >= endDate) {
-        updateUserPromises.push(updateUserWithSpecificFields(submission.userId, {currentStreak: 1}));
       }
+      // else if (submission.submittedAt >= endDate) {
+      //   updateUserPromises.push(updateUserWithSpecificFields(submission.userId, {currentStreak: 1}));
+      // }
     });
 
     if (updateUserPromises.length > 0) {
