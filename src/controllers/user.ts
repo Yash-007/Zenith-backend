@@ -38,6 +38,10 @@ export const CreateUserController = async (
         const newUser = await createUser(userData);
         const token = jwt.sign({userId: newUser.id}, process.env.JWT_SECRET as string, {expiresIn: '7d'})
         
+        const cacheKeys = await redisClient.keys(`leaderboard:*`);
+        for (const cacheKey of cacheKeys) {
+            await redisClient.del(cacheKey);
+        }        
         const createUserResponse: LoginOrRegisterUserResponse = {
             token,
             message: 'User registered successfully',
