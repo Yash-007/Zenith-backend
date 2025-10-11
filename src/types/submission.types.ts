@@ -33,3 +33,9 @@ export type SubmissionData = {
 }
 
 export type updateSubmissionStatusRequest = z.infer<typeof updateSubmissionStatusSchema>
+
+export type SubmissionProofs = {
+    text: string,
+    images: string[],
+    videos?: string[],
+}

@@ -12,6 +12,7 @@ import { updateUsersCurrentStreakJob } from './jobs/updateUsersStreak';
 import categoryRouter from './routes/category';
 import cors from 'cors';
 import geminiClient from './clients/gemini';
+import { updateUserSubmissionsJob } from './jobs/updateUserSubmissions';
 const app: Express = express();
 
 
@@ -46,6 +47,7 @@ app.use("/api/v1/category", categoryRouter);
 
 
 updateUsersCurrentStreakJob();
+updateUserSubmissionsJob();
 
 // Start server
 app.listen(port, () => {

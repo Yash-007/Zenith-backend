@@ -159,3 +159,21 @@ export const fetchUserLastSubmission = async(userId: string): Promise<Submission
         throw error;
     }
 }
+
+export const fetchOldSubmission = async(): Promise<Submission | null> => {
+ try {
+    const submission = await prisma.submission.findFirst({
+        where: {
+            status: "PENDING",
+            submittedAt: {
+                gte: new Date(2025, 9, 12)
+            }
+        },
+        orderBy: {submittedAt: "asc"}
+    });
+    return submission;
+ } catch (error) {
+    console.error("error fetching old submission", error);
+    throw error;
+ }
+}
