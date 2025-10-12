@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { createContact } from "../controllers/transaction";
+import { createContact, getAllContacts } from "../controllers/transaction";
 
 const transactionRouter = Router();
 
 transactionRouter.post('/contact', createContact);
+transactionRouter.get('/contacts', getAllContacts);
 
 export default transactionRouter;

@@ -31,3 +31,13 @@ export const createContactInDb = async (createContactRequest: RazorpayContact): 
         throw error;
     }
 }
+
+export const fetchAllContacts = async(): Promise<Contact[]> => {
+    try {
+        const contacts = await prisma.contact.findMany({});
+        return contacts;
+    } catch (error) {
+        console.error('Error fetching all contacts:', error);
+        throw error;
+    }
+}

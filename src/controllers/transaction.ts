@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { CreateContactRequest, createContactSchema } from "../types/transaction.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import axios from "axios";
-import { createContactInDb } from "../repo/transaction";
+import { createContactInDb, fetchAllContacts } from "../repo/transaction";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 export const createContact = async (req: Request<{}, {}, CreateContactRequest>, res: Response) => {
@@ -40,4 +40,21 @@ export const createContact = async (req: Request<{}, {}, CreateContactRequest>, 
             success: false
         } as ErrorResponse);
     }
-} 
+}
+
+export const getAllContacts = async (req: Request, res: Response<ErrorResponse | SuccessResponse>) => {
+    try {
+        const contacts = await fetchAllContacts();
+        return res.status(200).json({
+            success: true,
+            message: 'Contacts fetched successfully',
+            data: contacts
+        } as SuccessResponse);
+    } catch (error) {
+        console.error('Error fetching all contacts:', error);
+        return res.status(500).json({
+            message: 'Failed to fetch contacts',
+            success: false
+        } as ErrorResponse);
+    }
+}
