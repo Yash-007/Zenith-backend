@@ -13,6 +13,7 @@ import categoryRouter from './routes/category';
 import cors from 'cors';
 import geminiClient from './clients/gemini';
 import { updateUserSubmissionsJob } from './jobs/updateUserSubmissions';
+import transactionRouter from './routes/transaction';
 const app: Express = express();
 
 
@@ -44,6 +45,7 @@ app.use("/api/v1/submission", submissionRouter);
 app.use("/api/v1/reward", rewardRouter);
 app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/category", categoryRouter);
+app.use("/api/v1/transaction", transactionRouter);
 
 
 updateUsersCurrentStreakJob();

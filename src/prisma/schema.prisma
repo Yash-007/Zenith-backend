@@ -100,3 +100,51 @@ model Chat{
 
     @@map("chats")
 }
+
+model Contact {
+    id String @id
+    entity String
+    name String
+    contact String
+    email String
+    active Boolean
+    createdAt DateTime @default(now())
+
+    @@map("contacts")
+}
+
+model FundAccount {
+    id String @id
+    entity String
+    contactId String
+    accountType String
+    vpa Json 
+    active Boolean
+    createdAt DateTime @default(now())
+}
+
+model Transaction {
+    id String @id
+    razorpayTransactionId String
+    merchantAccountNumber String
+    entity String
+    idempotencyKey String
+    fundAccountId String
+    amount Int
+    currency String
+    fees Int
+    tax Int
+    status String
+    utr String?
+    mode String
+    purpose String
+    referenceId String?
+    narration String?
+    statusDetails Json?
+    statusDetailsId String?
+    feeType String?
+    errorDetails Json?
+    failureReason String?
+    merchantId String?
+    createdAt DateTime @default(now())
+}
