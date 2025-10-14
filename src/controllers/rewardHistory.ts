@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import { CreateUserRewardEntryRequest, createUserRewardEntrySchema } from "../types/reward.types";
-import { createUserReward, fetchUserRewardsHistory } from "../repo/rewardHistory";
+import { createUserReward, fetchUserRewardsHistory, updateUserRewardStatus } from "../repo/rewardHistory";
 import { getUserById, updateUserWithSpecificFields } from "../repo/user";
+import { createTransaction } from "./transaction";
+import { CreateTransactionRequest } from "../types/transaction.types";
+import { RewardStatus } from "@prisma/client";
 
 export const createUserRewardEntry = async(req: Request<{}, {}, CreateUserRewardEntryRequest> &  {userId?: string}, res: Response<SuccessResponse | ErrorResponse>) => {
     try {
@@ -31,19 +34,52 @@ export const createUserRewardEntry = async(req: Request<{}, {}, CreateUserReward
             } as ErrorResponse);
         }
 
-        const userFields = {
-            currentPoints: user.currentPoints - validatedData.pointsRewarded,
-            pointsUsed: user.pointsUsed + validatedData.pointsRewarded,
-        }
-        await updateUserWithSpecificFields(userId, userFields);
-
-        const userRewardEntry = await createUserReward(userId ,validatedData);
+        let rewardStatus: RewardStatus = RewardStatus.PENDING;
+        const userRewardEntry = await createUserReward(userId, rewardStatus, validatedData);
         if (!userRewardEntry) {
             return res.status(400).json({
                 message: 'Failed to create user reward entry',
                 success: false
             } as ErrorResponse);
         }
+
+        const createTransactionRequest: CreateTransactionRequest = {
+            vpaAddress: validatedData.vpaAddress,
+            amount: validatedData.amount,
+            rewardId: userRewardEntry.id,
+        }
+
+        const transaction = await createTransaction(createTransactionRequest, userId);
+        if (!transaction) {
+            return res.status(500).json({
+                message: 'Failed to create transaction',
+                success: false
+            } as ErrorResponse);
+        }
+
+        if (transaction.status === "processed"){
+            rewardStatus = RewardStatus.COMPLETED;
+        } else if (transaction.status === "failed" || transaction.status === "cancelled" || transaction.status === "reversed" || transaction.status === "rejected") {
+            rewardStatus = RewardStatus.FAILED;
+        }
+
+        if (rewardStatus !== RewardStatus.FAILED) {
+            const userFields = {
+                currentPoints: user.currentPoints - validatedData.pointsRewarded,
+                pointsUsed: user.pointsUsed + validatedData.pointsRewarded,
+            }
+            await updateUserWithSpecificFields(userId, userFields);
+        }
+
+        if (rewardStatus !== RewardStatus.PENDING) {
+        const updatedUserReward = await updateUserRewardStatus(userRewardEntry.id, rewardStatus);
+        if (!updatedUserReward) {
+            return res.status(400).json({
+                message: 'Failed to update user reward status',
+                success: false
+            } as ErrorResponse);
+        }
+    }
         return res.status(200).json({
             message: 'User reward entry created successfully',
             success: true,
