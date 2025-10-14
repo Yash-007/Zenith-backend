@@ -156,3 +156,17 @@ export const createTransactionInDB = async(razorpayTransaction: RazorpayTransact
         throw error;
     }
 }
+
+export const fetchTransactionByTransactionId = async(transactionId: string): Promise<Transaction | null> => {
+    try {
+        const transaction = await prisma.transaction.findUnique({
+            where: {
+                id: transactionId
+            }
+        });
+        return transaction as Transaction;
+    } catch (error) {
+        console.error('Error fetching transaction by transaction id:', error);
+        throw error;
+    }
+}   

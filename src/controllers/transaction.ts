@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AccountType, CreateContactRequest, createContactSchema, CreateTransactionRequest, RazorpayCreateFundAccountRequest, RazorpayCreateTransactionRequest, RazorpayTransaction, TransactionPurpose } from "../types/transaction.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import axios from "axios";
-import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchAllFundAccounts, fetchFundAccountById, fetchFundAccountByVpaAddress, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
+import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchAllFundAccounts, fetchFundAccountById, fetchFundAccountByVpaAddress, fetchTransactionByTransactionId, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import crypto from 'crypto';
 
@@ -210,5 +210,29 @@ export const createTransaction =  async (createTransactionRequest: CreateTransac
     } catch (error: any) {
         console.error('Error creating transaction:', error?.response?.data?.error || error?.message || error);
         throw error;
+    }
+}
+
+export const getTransactionByTransactionId = async (req: Request<{transactionId: string}>, res: Response<ErrorResponse | SuccessResponse>) => {
+    try {
+        const transactionId = req.params.transactionId;
+        const transaction = await fetchTransactionByTransactionId(transactionId);
+        if (!transaction) {
+            return res.status(404).json({
+                message: 'Transaction not found',
+                success: false
+            } as ErrorResponse);
+        }
+        return res.status(200).json({
+            message: 'Transaction fetched successfully',
+            success: true,
+            data: transaction
+        } as SuccessResponse);
+    } catch (error) {
+        console.error('Error getting transaction by transaction id:', error);
+        return res.status(500).json({
+            message: 'Failed to get transaction by transaction id',
+            success: false
+        } as ErrorResponse);
     }
 }
