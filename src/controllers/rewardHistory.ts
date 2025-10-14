@@ -18,6 +18,14 @@ export const createUserRewardEntry = async(req: Request<{}, {}, CreateUserReward
         }
 
         const validatedData = result.data;
+
+        if (validatedData.pointsRewarded != 3000 || validatedData.amount != 200) {
+            return res.status(400).json({
+                message: 'Invalid points rewarded or amount',
+                success: false
+            } as ErrorResponse);
+        } 
+        
         const userId = req.userId as string;
         const user = await getUserById(userId);
         if (!user) {
