@@ -52,3 +52,17 @@ export const updateUserRewardStatus = async(rewardId: string, rewardStatus: Rewa
         throw error;
     }
 }
+
+export const fetchUserRewardByRewardId = async(rewardId: string): Promise<RewardHistory | null> => {
+    try {
+        const userReward = await prisma.rewardHistory.findUnique({
+            where: {
+                id: rewardId
+            }
+        });
+        return userReward as RewardHistory;
+    } catch (error) {
+        console.error('Error fetching user reward by reward id:', error);
+        throw error;
+    }
+}

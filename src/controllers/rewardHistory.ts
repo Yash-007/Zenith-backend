@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import { CreateUserRewardEntryRequest, createUserRewardEntrySchema } from "../types/reward.types";
-import { createUserReward, fetchUserRewardsHistory, updateUserRewardStatus } from "../repo/rewardHistory";
+import { createUserReward, fetchUserRewardByRewardId, fetchUserRewardsHistory, updateUserRewardStatus } from "../repo/rewardHistory";
 import { getUserById, updateUserWithSpecificFields } from "../repo/user";
 import { createTransaction } from "./transaction";
 import { CreateTransactionRequest } from "../types/transaction.types";
@@ -107,6 +107,30 @@ export const getUserRewardsHistory = async(req: Request & {userId?: string}, res
         console.error('Error getting user rewards history:', error);
         return res.status(500).json({
             message: 'Failed to get user rewards history',
+            success: false
+        } as ErrorResponse);
+    }
+}
+
+export const getUserRewardByRewardId = async(req: Request<{rewardId: string}>, res: Response<SuccessResponse | ErrorResponse>) => {
+    try {
+        const rewardId = req.params.rewardId;
+        const userReward = await fetchUserRewardByRewardId(rewardId);
+        if (!userReward) {
+            return res.status(404).json({
+                message: 'User reward not found',
+                success: false
+            } as ErrorResponse);
+        }
+        return res.status(200).json({
+            message: 'User reward fetched successfully',
+            success: true,
+            data: userReward
+        } as SuccessResponse);
+    } catch (error) {
+        console.error('Error getting user reward by reward id:', error);
+        return res.status(500).json({
+            message: 'Failed to get user reward by reward id',
             success: false
         } as ErrorResponse);
     }
