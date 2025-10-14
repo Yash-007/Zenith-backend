@@ -170,3 +170,13 @@ export const fetchTransactionByTransactionId = async(transactionId: string): Pro
         throw error;
     }
 }   
+
+export const fetchAllTransactions = async(): Promise<Transaction[]> => {
+    try {
+        const transactions = await prisma.transaction.findMany({});
+        return transactions as Transaction[];
+    } catch (error) {
+        console.error('Error fetching all transactions:', error);
+        throw error;
+    }
+}

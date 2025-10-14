@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AccountType, CreateContactRequest, createContactSchema, CreateTransactionRequest, RazorpayCreateFundAccountRequest, RazorpayCreateTransactionRequest, RazorpayTransaction, TransactionPurpose } from "../types/transaction.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import axios from "axios";
-import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchAllFundAccounts, fetchFundAccountById, fetchFundAccountByVpaAddress, fetchTransactionByTransactionId, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
+import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchAllFundAccounts, fetchAllTransactions, fetchFundAccountById, fetchFundAccountByVpaAddress, fetchTransactionByTransactionId, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import crypto from 'crypto';
 
@@ -235,4 +235,21 @@ export const getTransactionByTransactionId = async (req: Request<{transactionId:
             success: false
         } as ErrorResponse);
     }
+}
+
+export const getAllTransactions = async (req: Request, res: Response<ErrorResponse | SuccessResponse>) => {
+    try {
+        const transactions = await fetchAllTransactions();
+        return res.status(200).json({
+            message: 'Transactions fetched successfully',
+            success: true,
+            data: transactions
+        } as SuccessResponse);
+  } catch (error) {
+    console.error('Error getting all transactions:', error);
+    return res.status(500).json({
+      message: 'Failed to get all transactions',
+      success: false
+    } as ErrorResponse);
+  }
 }
