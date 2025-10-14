@@ -5,6 +5,8 @@ import axios from "axios";
 import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchAllFundAccounts, fetchAllTransactions, fetchFundAccountById, fetchFundAccountByVpaAddress, fetchTransactionByTransactionId, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import crypto from 'crypto';
+import { fetchUserRewardByRewardId, updateUserRewardStatus } from "../repo/rewardHistory";
+import { RewardStatus } from "@prisma/client";
 
 export const createContact = async (req: Request<{}, {}, CreateContactRequest>, res: Response) => {
     try {
@@ -252,4 +254,55 @@ export const getAllTransactions = async (req: Request, res: Response<ErrorRespon
       success: false
     } as ErrorResponse);
   }
+}
+
+export const transactionWebhook = async (req: Request, res: Response) => {
+    try {
+        console.log("Transaction webhook received");
+        const signature = req.headers['x-razorpay-signature'];
+        console.log(signature, "signature");
+        // if (signature != process.env.RAZORPAY_WEBHOOK_SIGNATURE) {
+        //     console.log("Invalid signature");
+        //     return;
+        // }
+        const {event, payload} : {event: string, payload: any} = req.body;
+        console.log(event, "event");
+         console.log(payload);
+         console.log(payload.payout.entity, "entity");
+
+         const transactionId = payload.payout.id;
+         const transaction = await fetchTransactionByTransactionId(transactionId);
+         if (!transaction) {
+            console.log("Transaction not found");
+            return;
+         }
+
+         const reward = await fetchUserRewardByRewardId(transaction.rewardId);
+         if (!reward) {
+            console.log("Reward not found");
+            return;
+         }
+
+         if (event === "payout.proceessed") {
+            transaction.status = "processed";
+            reward.status = RewardStatus.COMPLETED;
+            // await updateTransaction(transactionId, transaction); // will also update status details
+         } else if (event === "payout.rejected" || event === "payout.reversed") {
+            transaction.status = "failed";   // here check for rejected and reversed (details comes in payload)
+            reward.status = RewardStatus.FAILED;
+         }
+
+         await updateUserRewardStatus(reward.id, reward.status as RewardStatus);
+        //  update transaction with specific fields
+         return res.status(200).json({
+            message: 'Transaction webhook received successfully',
+            success: true
+         } as SuccessResponse);
+    } catch (error) {
+        console.error('Error receiving transaction webhook:', error);
+        return res.status(500).json({
+            message: 'Failed to receive transaction webhook',
+            success: false
+        } as ErrorResponse);
+    }
 }
