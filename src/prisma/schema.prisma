@@ -76,13 +76,16 @@ model Submission {
 enum RewardStatus {
     PENDING
     COMPLETED
+    FAILED
 }
 
 model RewardHistory{
     id String @id @default(uuid())
     userId String
     pointsRewarded Int
+    amount Int
     rewardType String
+    vpaAddress String
     status RewardStatus? @default(PENDING)
     rewardedAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -115,20 +118,25 @@ model Contact {
 
 model FundAccount {
     id String @id
+    vpaAddress String @unique
     entity String
     contactId String
     accountType String
     vpa Json 
     active Boolean
     createdAt DateTime @default(now())
+
+    @@unique([vpaAddress, contactId])
+    @@map("fund_accounts")
 }
 
 model Transaction {
     id String @id
-    razorpayTransactionId String
+    userId String @default(uuid())
+    rewardId String @default(uuid())
     merchantAccountNumber String
     entity String
-    idempotencyKey String
+    idempotencyKey String @default(uuid())
     fundAccountId String
     amount Int
     currency String
@@ -147,4 +155,6 @@ model Transaction {
     failureReason String?
     merchantId String?
     createdAt DateTime @default(now())
+
+    @@map("transactions")
 }
