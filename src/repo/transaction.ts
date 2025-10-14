@@ -80,6 +80,20 @@ export const fetchFundAccountByVpaAddress = async(vpaAddress: string): Promise<F
     }
 }
 
+export const fetchFundAccountById = async(id: string): Promise<FundAccount | null> => {
+    try {
+        const fundAccount = await prisma.fundAccount.findUnique({
+            where: {
+                id: id
+            }
+        });
+        return fundAccount as FundAccount;
+    } catch (error) {
+        console.error('Error fetching fund account by id:', error);
+        throw error;
+    }
+}
+
 export const findFundAccountByVpaAddressAndContactId = async(vpaAddress: string, contactId: string): Promise<FundAccount | null> => {
     try {
         const fundAccount = await prisma.fundAccount.findUnique({

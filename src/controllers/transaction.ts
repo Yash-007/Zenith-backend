@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AccountType, CreateContactRequest, createContactSchema, CreateTransactionRequest, RazorpayCreateFundAccountRequest, RazorpayCreateTransactionRequest, RazorpayTransaction, TransactionPurpose } from "../types/transaction.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import axios from "axios";
-import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchFundAccountByVpaAddress, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
+import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchFundAccountById, fetchFundAccountByVpaAddress, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import crypto from 'crypto';
 
@@ -87,7 +87,7 @@ export const getFundAccountByVpaAddress = async (req: Request<{vpaAddress: strin
         success: false
       } as ErrorResponse);
     }
-    
+
     return res.status(200).json({
       message: 'Fund account fetched successfully',
       success: true,
@@ -97,6 +97,31 @@ export const getFundAccountByVpaAddress = async (req: Request<{vpaAddress: strin
     console.error('Error getting fund account by vpa address:', error);
     return res.status(500).json({
       message: 'Failed to get fund account by vpa address',
+      success: false
+    } as ErrorResponse);
+  }
+}
+
+export const getFundAccountByFundAccountId = async (req: Request<{fundAccountId: string}>, res: Response<ErrorResponse | SuccessResponse>) => {
+  try {
+    const fundAccountId = req.params.fundAccountId;
+    const fundAccount = await fetchFundAccountById(fundAccountId);
+    if (!fundAccount) {
+      return res.status(404).json({
+        message: 'Fund account not found',
+        success: false
+      } as ErrorResponse);
+    }
+
+    return res.status(200).json({
+      message: 'Fund account fetched successfully',
+      success: true,
+      data: fundAccount
+    } as SuccessResponse);
+  } catch (error) {
+    console.error('Error getting fund account by contact id:', error);
+    return res.status(500).json({
+      message: 'Failed to get fund account by contact id',
       success: false
     } as ErrorResponse);
   }
