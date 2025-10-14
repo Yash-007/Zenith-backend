@@ -94,6 +94,16 @@ export const fetchFundAccountById = async(id: string): Promise<FundAccount | nul
     }
 }
 
+export const fetchAllFundAccounts = async(): Promise<FundAccount[]> => {
+    try {
+        const fundAccounts = await prisma.fundAccount.findMany({});
+        return fundAccounts as FundAccount[];
+    } catch (error) {
+        console.error('Error fetching all fund accounts:', error);
+        throw error;
+    }
+}
+
 export const findFundAccountByVpaAddressAndContactId = async(vpaAddress: string, contactId: string): Promise<FundAccount | null> => {
     try {
         const fundAccount = await prisma.fundAccount.findUnique({

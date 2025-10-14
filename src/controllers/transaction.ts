@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AccountType, CreateContactRequest, createContactSchema, CreateTransactionRequest, RazorpayCreateFundAccountRequest, RazorpayCreateTransactionRequest, RazorpayTransaction, TransactionPurpose } from "../types/transaction.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import axios from "axios";
-import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchFundAccountById, fetchFundAccountByVpaAddress, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
+import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchAllFundAccounts, fetchFundAccountById, fetchFundAccountByVpaAddress, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import crypto from 'crypto';
 
@@ -122,6 +122,23 @@ export const getFundAccountByFundAccountId = async (req: Request<{fundAccountId:
     console.error('Error getting fund account by contact id:', error);
     return res.status(500).json({
       message: 'Failed to get fund account by contact id',
+      success: false
+    } as ErrorResponse);
+  }
+}
+
+export const getAllFundAccounts = async (req: Request, res: Response<ErrorResponse | SuccessResponse>) => {
+  try {
+    const fundAccounts = await fetchAllFundAccounts();
+    return res.status(200).json({
+      message: 'Fund accounts fetched successfully',
+      success: true,
+      data: fundAccounts
+    } as SuccessResponse);
+  } catch (error) {
+    console.error('Error getting all fund accounts:', error);
+    return res.status(500).json({
+      message: 'Failed to get all fund accounts',
       success: false
     } as ErrorResponse);
   }
