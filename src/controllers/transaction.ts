@@ -11,11 +11,6 @@ import { JsonObject } from "@prisma/client/runtime/library";
 import { getUserById, updateUserWithSpecificFields } from "../repo/user";
 import Razorpay from "razorpay";
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_API_KEY as string,
-    key_secret: process.env.RAZORPAY_API_SECRET as string
-});
-
 export const createContact = async (req: Request<{}, {}, CreateContactRequest>, res: Response) => {
     try {
         const result = createContactSchema.safeParse(req.body);
