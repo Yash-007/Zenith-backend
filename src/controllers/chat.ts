@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import { QueryType, answerUserQuerySchema, ChatResponse } from "../types/chat.types";
-import { fetchUserChats, storeUserQueryAndResponse } from "../repo/chat";
+import { fetchUserChats, getUserChatsCount, storeUserQueryAndResponse } from "../repo/chat";
 import { determineQueryType, getPromptForQueryType, getUserContextString } from "../utils/chat.utils";
 import { getUserById } from "../repo/user";
 import { answerQuery } from "../clients/gemini";
@@ -21,6 +21,21 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
 
         const { query } = result.data;
         const userId = req.userId as string;
+
+        const chatsCount = await getUserChatsCount(userId);
+        if (chatsCount === null || chatsCount === undefined) {
+            return res.status(500).json({
+                message: 'Internal server error',
+                success: false
+            } as ErrorResponse);
+        }
+
+        if (chatsCount >= 100) {
+            return res.status(400).json({
+                message: 'You have reached the maximum number of chats',
+                success: false
+            } as ErrorResponse);
+        }
 
         const cacheKey = getUserChatsCacheKey(userId);
         await redisClient.del(cacheKey);

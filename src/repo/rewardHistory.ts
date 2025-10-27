@@ -1,14 +1,15 @@
-import { PrismaClient, RewardHistory } from "@prisma/client";
+import { PrismaClient, RewardHistory, RewardStatus } from "@prisma/client";
 import { CreateUserRewardEntryRequest } from "../types/reward.types";
 
 const prisma = new PrismaClient();
 
-export const createUserReward = async(userId: string, userRewardEntry: CreateUserRewardEntryRequest): Promise<RewardHistory | null> => {
+export const createUserReward = async(userId: string, rewardStatus: RewardStatus, userRewardEntry: CreateUserRewardEntryRequest): Promise<RewardHistory | null> => {
     try {
         const reward = await prisma.rewardHistory.create({
             data: {
+                userId:userId,
+                status: rewardStatus,
                 ...userRewardEntry,
-                userId:userId
             }
         })
         return reward;
@@ -31,6 +32,37 @@ export const fetchUserRewardsHistory = async(userId: string): Promise<RewardHist
         return userRewardsHistory;
     } catch (error) {
         console.error('Error fetching user rewards history from the db:', error);
+        throw error;
+    }
+}
+
+export const updateUserRewardStatus = async(rewardId: string, rewardStatus: RewardStatus) => {
+    try {
+    const userReward = await prisma.rewardHistory.update({
+        where: {
+            id: rewardId
+        },
+        data: {
+            status: rewardStatus
+        }
+    });
+        return userReward as RewardHistory;
+    } catch (error) {
+        console.error('Error updating user reward status in the db:', error);
+        throw error;
+    }
+}
+
+export const fetchUserRewardByRewardId = async(rewardId: string): Promise<RewardHistory | null> => {
+    try {
+        const userReward = await prisma.rewardHistory.findUnique({
+            where: {
+                id: rewardId
+            }
+        });
+        return userReward as RewardHistory;
+    } catch (error) {
+        console.error('Error fetching user reward by reward id:', error);
         throw error;
     }
 }
