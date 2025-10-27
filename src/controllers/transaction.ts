@@ -9,6 +9,12 @@ import { fetchUserRewardByRewardId, updateUserRewardStatus } from "../repo/rewar
 import { RewardStatus } from "@prisma/client";
 import { JsonObject } from "@prisma/client/runtime/library";
 import { getUserById, updateUserWithSpecificFields } from "../repo/user";
+import Razorpay from "razorpay";
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_API_KEY as string,
+    key_secret: process.env.RAZORPAY_API_SECRET as string
+});
 
 export const createContact = async (req: Request<{}, {}, CreateContactRequest>, res: Response) => {
     try {
@@ -262,11 +268,13 @@ export const transactionWebhook = async (req: Request, res: Response) => {
     try {
         console.log("Transaction webhook received");
         const signature = req.headers['x-razorpay-signature'];
-        console.log(signature, "signature");
-        // if (signature != process.env.RAZORPAY_WEBHOOK_SIGNATURE) {
-        //     console.log("Invalid signature");
-        //     return;
-        // }
+
+        const isValid = Razorpay.validateWebhookSignature(JSON.stringify(req.body), signature as string, process.env.RAZORPAY_WEBHOOK_SECRET as string);
+        if (!isValid) {
+            console.log("Invalid signature");
+            return;
+        }
+
         const {event, payload} : {event: string, payload: any} = req.body;
          const entity = payload.payout.entity;
          const transactionId = entity.id;
