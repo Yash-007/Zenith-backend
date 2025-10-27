@@ -35,3 +35,17 @@ export const fetchUserChats = async(userId: string): Promise<Chat[] | null> => {
     throw error;
   }
 }
+
+export const getUserChatsCount = async(userId: string): Promise<number | null> => {
+    try {
+        const chatsCount = await prisma.chat.count({
+            where: {
+                userId: userId
+            }
+        });
+        return chatsCount;
+    } catch (error) {
+        console.error('Error getting user chats count:', error);
+        throw error;
+    }
+}
