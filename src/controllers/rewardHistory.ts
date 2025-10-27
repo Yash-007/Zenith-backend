@@ -19,7 +19,7 @@ export const createUserRewardEntry = async(req: Request<{}, {}, CreateUserReward
 
         const validatedData = result.data;
 
-        if (validatedData.pointsRewarded != 3000 || validatedData.amount != 200) {
+        if (validatedData.pointsRewarded != 3000 || validatedData.amount != 20000) {
             return res.status(400).json({
                 message: 'Invalid points rewarded or amount',
                 success: false

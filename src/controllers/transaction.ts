@@ -2,11 +2,13 @@ import { Request, Response } from "express";
 import { AccountType, CreateContactRequest, createContactSchema, CreateTransactionRequest, RazorpayCreateFundAccountRequest, RazorpayCreateTransactionRequest, RazorpayTransaction, TransactionPurpose } from "../types/transaction.types";
 import { ErrorResponse, SuccessResponse } from "../types/common.types";
 import axios from "axios";
-import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchAllFundAccounts, fetchAllTransactions, fetchFundAccountById, fetchFundAccountByVpaAddress, fetchTransactionByTransactionId, findFundAccountByVpaAddressAndContactId } from "../repo/transaction";
+import { createContactInDb, createFundAccountInDB, createTransactionInDB, fetchAllContacts, fetchAllFundAccounts, fetchAllTransactions, fetchFundAccountById, fetchFundAccountByVpaAddress, fetchTransactionByTransactionId, findFundAccountByVpaAddressAndContactId, updateTransactionWithSpecificFields } from "../repo/transaction";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import crypto from 'crypto';
 import { fetchUserRewardByRewardId, updateUserRewardStatus } from "../repo/rewardHistory";
 import { RewardStatus } from "@prisma/client";
+import { JsonObject } from "@prisma/client/runtime/library";
+import { getUserById, updateUserWithSpecificFields } from "../repo/user";
 
 export const createContact = async (req: Request<{}, {}, CreateContactRequest>, res: Response) => {
     try {
@@ -266,11 +268,8 @@ export const transactionWebhook = async (req: Request, res: Response) => {
         //     return;
         // }
         const {event, payload} : {event: string, payload: any} = req.body;
-        console.log(event, "event");
-         console.log(payload);
-         console.log(payload.payout.entity, "entity");
-
-         const transactionId = payload.payout.id;
+         const entity = payload.payout.entity;
+         const transactionId = entity.id;
          const transaction = await fetchTransactionByTransactionId(transactionId);
          if (!transaction) {
             console.log("Transaction not found");
@@ -282,18 +281,33 @@ export const transactionWebhook = async (req: Request, res: Response) => {
             console.log("Reward not found");
             return;
          }
+         const transactionFields: {[key: string]: any} = {};
+         transactionFields.utr = entity?.utr || null;
+         transactionFields.narration = entity?.narration || null;
+         transactionFields.status = entity.status;
 
-         if (event === "payout.proceessed") {
-            transaction.status = "processed";
+         if (event === "payout.processed") {
+            transactionFields.statusDetails = entity?.status_details as JsonObject;
             reward.status = RewardStatus.COMPLETED;
-            // await updateTransaction(transactionId, transaction); // will also update status details
          } else if (event === "payout.rejected" || event === "payout.reversed") {
-            transaction.status = "failed";   // here check for rejected and reversed (details comes in payload)
+            transactionFields.errorDetails = entity?.error_details as JsonObject;
+            transactionFields.failureReason = entity?.failure_reason || null;
             reward.status = RewardStatus.FAILED;
+
+            const user = await getUserById(reward.userId);
+            if (!user) {
+                console.log("User not found");
+                return;
+            }
+            const userFields: {[key: string]: any} = {
+                currentPoints: user.currentPoints + reward.pointsRewarded,
+                pointsUsed: user.pointsUsed - reward.pointsRewarded,
+            }
+            await updateUserWithSpecificFields(reward.userId, userFields);
          }
 
          await updateUserRewardStatus(reward.id, reward.status as RewardStatus);
-        //  update transaction with specific fields
+         await updateTransactionWithSpecificFields(transactionId, transactionFields);
          return res.status(200).json({
             message: 'Transaction webhook received successfully',
             success: true

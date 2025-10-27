@@ -180,3 +180,18 @@ export const fetchAllTransactions = async(): Promise<Transaction[]> => {
         throw error;
     }
 }
+
+export const updateTransactionWithSpecificFields = async(transactionId: string, transactionFields: {[key: string]: any}): Promise<Transaction | null> => {
+    try {
+        const updatedTransaction = await prisma.transaction.update({
+            where: {
+                id: transactionId
+            },
+            data: transactionFields
+        });
+        return updatedTransaction as Transaction;
+    } catch (error) {
+        console.error('Error updating transaction with specific fields:', error);
+        throw error;
+    }
+}
