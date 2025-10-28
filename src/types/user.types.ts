@@ -1,7 +1,6 @@
 import { User } from "@prisma/client";
 import { z } from 'zod';
 
-// Zod schema for registering user
 export const createUserSchema = z.object({
     email: z.string().email('Invalid email format'),
     password: z.string()
@@ -27,7 +26,6 @@ export type GetUserResponse = {
     success: boolean
 }
 
-// Zod schema for login user
 export const loginUserSchema = z.object({
     email: z.string().email('Invalid email format'),
     password: z.string().nonempty('Password is required')

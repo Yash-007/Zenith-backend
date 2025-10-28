@@ -39,10 +39,8 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
 
         const cacheKey = getUserChatsCacheKey(userId);
         await redisClient.del(cacheKey);
-        // First, determine query type
         const queryType = await determineQueryType(query);
 
-        // Get user context if needed
         let userContext = "";
         let response = "";
         if (queryType === QueryType.USER_INFO) {
@@ -54,19 +52,15 @@ export const answerUserQuery = async(req: Request & {userId?: string}, res: Resp
                 } as ErrorResponse);
             }
             userContext = await getUserContextString(user);
-            
-            // Temporarily save context to file for verification
-            // await writeContextToFile(userContext, userId);
         }
 
-            // Get appropriate prompt and generate response
-            const prompt = getPromptForQueryType(queryType, userContext);
-            if (!prompt) {
-                response = "I'm sorry, I can't answer that question.";
-            } else {
+        const prompt = getPromptForQueryType(queryType, userContext);
+        if (!prompt) {
+            response = "I'm sorry, I can't answer that question.";
+        } else {
             response = await answerQuery(prompt + "\nQuery: " + query);
             response = response.replace(/\*\*/g, '');
-           }
+        }
         console.log("cleaned response", response);
 
         // Store in database

@@ -14,7 +14,6 @@ export const CreateUserController = async (
     res: Response<LoginOrRegisterUserResponse>
 ) => {
     try {
-        // Validate request body against the schemas
         const result = createUserSchema.safeParse(req.body);
         if (!result.success) {
             return res.status(400).json({ 
