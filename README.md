@@ -2,6 +2,8 @@
 
 Backend for Zenith: A comprehensive personal growth platform where users complete daily challenges across multiple categories, get AI-powered coaching, track progress with streaks and leaderboards, and redeem earned points for real cash rewards via automated UPI payouts.
 
+**Frontend Repository**: [zenith-frontend](https://github.com/Yash-007/Zenith-frontend)
+
 ## Tech Stack
 
 - Node.js + TypeScript + Express
